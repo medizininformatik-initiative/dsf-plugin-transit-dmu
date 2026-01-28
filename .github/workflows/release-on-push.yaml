@@ -49,7 +49,7 @@ jobs:
 
         uses: actions/upload-artifact@v4
         with:
-          name: store-controller-jar
+          name: transit-dmu-jar
           path: ${{ github.workspace }}/target/mii-transit-dmst-1.0.0.1.jar
 
   release:
@@ -61,7 +61,7 @@ jobs:
 
         uses: actions/download-artifact@v4
         with:
-          name: store-controller-jar
+          name: transit-dmu-jar
           path: ./artifact
 
       - name: Debug artifact contents
