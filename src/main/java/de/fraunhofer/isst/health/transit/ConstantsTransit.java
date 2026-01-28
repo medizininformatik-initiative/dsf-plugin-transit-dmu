@@ -1,7 +1,5 @@
 package de.fraunhofer.isst.health.transit;
 
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-
 public interface ConstantsTransit
 {
 
@@ -44,8 +42,8 @@ public interface ConstantsTransit
 	String CODESYSTEM_DMU_VALUE_DIZ = "data-integration-center";
 	//EXECUTION
     //Names of the variables in the delegate execution
-    public static final String DSF_TASK_CODESYSTEM_BPMNMESSAGE = "http://dsf.dev/fhir/CodeSystem/bpmn-message";
-    public static final String DSF_TASK_CODESYSTEM_BPMNMESSAGE_OLD = "http://highmed.org/fhir/CodeSystem/bpmn-message";
+    String DSF_TASK_CODESYSTEM_BPMNMESSAGE = "http://dsf.dev/fhir/CodeSystem/bpmn-message";
+    String DSF_TASK_CODESYSTEM_BPMNMESSAGE_OLD = "http://highmed.org/fhir/CodeSystem/bpmn-message";
 
     String DUPIDENTIFIER = "dupIdentifier";
     String FHIRSTOREURL = "fhirContainerUrl";
@@ -80,27 +78,27 @@ public interface ConstantsTransit
     //Others
 
 	//TODO change local DSF to Version 1.0 (Same as VM dms.isst.fraunhofer.de)
-	public static final String DSF_TASK_CODESYSTEM_DATASHARING
+	 String DSF_TASK_CODESYSTEM_DATASHARING
 			= "http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing";
 
 
-	public static final String DSF_TASK_BPMNMESSAGE_MESSAGENAME = "message-name";
-	public static final String DSF_TASK_BPMNMESSAGE_BUSINESSKEY = "business-key";
+	 String DSF_TASK_BPMNMESSAGE_MESSAGENAME = "message-name";
+	 String DSF_TASK_BPMNMESSAGE_BUSINESSKEY = "business-key";
 
-	public static final String DSF_TASK_DATASHARING_DIC_CORRELATION = "dic-correlation-key";
-	public static final String DSF_TASK_DATASHARING_DIC_IDENTIFIER
+	 String DSF_TASK_DATASHARING_DIC_CORRELATION = "dic-correlation-key";
+	 String DSF_TASK_DATASHARING_DIC_IDENTIFIER
 			= "http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier";
-	public static final String DSF_TASK_DATASHARING_DIC_IDENTIFIER2
+	 String DSF_TASK_DATASHARING_DIC_IDENTIFIER2
 			= "http://medizininformatik-initiative.de/fhir/Extension/dic-identifier";
-	public static final String DSF_TASK_DATASHARING_PROJECTIDENTIFIER = "project-identifier";
-	public static final String DSF_TASK_DATASHARING_CONTRACTLOCATION = "contract-url";
-	public static final String DSF_TASK_DATASHARING_RESEARCHERIDENTIFIER = "researcher-identifier";
-	public static final String DSF_TASK_DATASHARING_PROJECTTITLE = "project-title";
-	public static final String DSF_TASK_DATASHARING_PROJECTDATECREATED = "project-date-created";
-	public static final String DSF_TASK_DATASHARING_PROJECTENDDATE = "project-enddate";
-	public static final String DSF_TASK_DATASHARING_EXTRACTIONINTERVAL = "extraction-period";
-    public static final String SALT_DOMAIN_NAME = "SALT_DOMAIN";
-    public static final int SALT_LENGTH = 64;
+	 String DSF_TASK_DATASHARING_PROJECTIDENTIFIER = "project-identifier";
+	 String DSF_TASK_DATASHARING_CONTRACTLOCATION = "contract-url";
+	 String DSF_TASK_DATASHARING_RESEARCHERIDENTIFIER = "researcher-identifier";
+	 String DSF_TASK_DATASHARING_PROJECTTITLE = "project-title";
+	 String DSF_TASK_DATASHARING_PROJECTDATECREATED = "project-date-created";
+	 String DSF_TASK_DATASHARING_PROJECTENDDATE = "project-enddate";
+	 String DSF_TASK_DATASHARING_EXTRACTIONINTERVAL = "extraction-period";
+     String SALT_DOMAIN_NAME = "SALT_DOMAIN";
+     int SALT_LENGTH = 64;
 	//Trigger
 	String CODESYSTEM_TIMER_INTERVAL = "timer-interval";
 	String TIMER_INTERVAL_DEFAULT_VALUE = "PT24H";

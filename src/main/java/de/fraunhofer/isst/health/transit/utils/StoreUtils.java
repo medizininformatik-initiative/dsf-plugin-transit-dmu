@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 public final class StoreUtils {
-    //TODO Move Constants into POM-File to be accessed via ProfileService
     private static final Logger LOGGER = Logger.getLogger(StoreUtils.class.getName());
 
     private static final int TIMEOUT_MS = 10000;

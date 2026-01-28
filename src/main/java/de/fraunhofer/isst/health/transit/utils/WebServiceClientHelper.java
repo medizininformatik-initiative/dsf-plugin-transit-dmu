@@ -38,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 public final class WebServiceClientHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebServiceClientHelper.class);
-//    private static final ProfileService PROFILE_SERVICE = new ProfileServiceImpl();
     private static final BouncyCastleProvider PROVIDER = new BouncyCastleProvider();
     private static final FhirContext FHIR_CONTEXT = FhirContext.forR4();
     private static final int TIMEOUT_S = 180;
@@ -56,11 +55,6 @@ public final class WebServiceClientHelper {
         Client client;
         ClientBuilder builder = ClientBuilder.newBuilder();
         SSLContext sslContext;
-
-//        if (withSSLContext) {
-//            sslContext = getSSLContext();
-//            builder = builder.sslContext(sslContext);
-//        }
 
         builder = builder.readTimeout(TIMEOUT_S, TimeUnit.SECONDS).connectTimeout(TIMEOUT_S,
                 TimeUnit.SECONDS);
@@ -114,11 +108,6 @@ public final class WebServiceClientHelper {
         ClientBuilder builder = ClientBuilder.newBuilder();
         SSLContext sslContext;
 
-//        if (withSSLContext) {
-//            sslContext = getSSLContext();
-//            builder = builder.sslContext(sslContext);
-//        }
-
         builder = builder.readTimeout(TIMEOUT_S, TimeUnit.SECONDS).connectTimeout(TIMEOUT_S,
                 TimeUnit.SECONDS);
 
@@ -165,11 +154,6 @@ public final class WebServiceClientHelper {
         Client client;
         ClientBuilder builder = ClientBuilder.newBuilder();
         SSLContext sslContext;
-
-//        if (!withoutSSLContext) {
-//            sslContext = getSSLContext();
-//            builder = builder.sslContext(sslContext);
-//        }
 
         builder = builder.readTimeout(TIMEOUT_S, TimeUnit.SECONDS).connectTimeout(TIMEOUT_S,
                 TimeUnit.SECONDS);
@@ -257,43 +241,10 @@ public final class WebServiceClientHelper {
         }
     }
 
-//    public static <T extends Resource> Response putFhirResource(T fhirResource) throws CertificateException,
-//            IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
-//        Client client;
-//        ClientBuilder builder = ClientBuilder.newBuilder();
-//        SSLContext sslContext = getSSLContext();
-//
-//        builder = builder.sslContext(sslContext);
-//
-//        builder = builder.readTimeout(TIMEOUT_S, TimeUnit.SECONDS).connectTimeout(TIMEOUT_S,
-//                TimeUnit.SECONDS);
-//
-//        client = builder.build();
-//
-//        String baseUrl = PROFILE_SERVICE.getDsfURL()
-//                + fhirResource.getIdElement().getResourceType() //ResourceType
-//                + "/" + fhirResource.getIdElement().getIdPart(); //ID
-//
-//        WebTarget target = client.target(baseUrl);
-//
-//        Response response = target.request()
-//                .header(Constants.HEADER_PREFER, "return=minimal")
-//                .accept(Constants.CT_FHIR_JSON_NEW)
-//                .put(Entity.entity(FHIR_CONTEXT.newJsonParser().encodeResourceToString(fhirResource),
-//                        Constants.CT_FHIR_JSON_NEW));
-//
-//        client.close();
-//
-//        return response;
-//    }
-
     public static Response deleteFhirResource(String url) throws CertificateException,
             IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
         Client client;
         ClientBuilder builder = ClientBuilder.newBuilder();
-//        SSLContext sslContext = getSSLContext();
-
-//        builder = builder.sslContext(sslContext);
 
         builder = builder.readTimeout(TIMEOUT_S, TimeUnit.SECONDS).connectTimeout(TIMEOUT_S,
                 TimeUnit.SECONDS);
@@ -337,154 +288,7 @@ public final class WebServiceClientHelper {
         return CertificateReader.allFromCer(testCaCert);
     }
 
-//    private static SSLContext getSSLContext() throws CertificateException, IOException, KeyStoreException,
-//            NoSuchAlgorithmException, PKCSException {
-//
-//        LOGGER.info("creating SSLContext");
-//
-//        LOGGER.info("Loading clientCert");
-//        InputStream clientCert = loadCertificate(PROFILE_SERVICE.getCertificatePathClient());
-//        if (clientCert == null) {
-//            LOGGER.warn("clientCert is NULL");
-//        } else {
-//            LOGGER.info("clientCert loaded");
-//        }
-//
-//        LOGGER.info("Trimming ClientCert");
-//        assert clientCert != null;
-//        String tmpClient = new String(clientCert.readAllBytes());
-//        tmpClient = tmpClient.trim();
-//        clientCert = new ByteArrayInputStream(tmpClient.getBytes());
-//        LOGGER.info("Trimmed ClientCert");
-//
-//        LOGGER.info("Loading testCaCert");
-//        InputStream testCaCert = loadCertificate(PROFILE_SERVICE.getCertificatePathTestCa());
-//        if (testCaCert == null) {
-//            LOGGER.warn("testCaCert is NULL");
-//        } else {
-//            LOGGER.info("testCaCert loaded");
-//        }
-//
-//        LOGGER.info("Trimming CaCert");
-//        assert testCaCert != null;
-//        String tmpCaCert = new String(testCaCert.readAllBytes());
-//        tmpCaCert = tmpCaCert.trim();
-//        testCaCert = new ByteArrayInputStream(tmpCaCert.getBytes());
-//        LOGGER.info("Trimmed CaCert");
-//
-//        LOGGER.info("Loading clientCertPrivateKey");
-//        InputStream clientCertPrivateKey = loadCertificate(PROFILE_SERVICE.getCertificatePathPrivateKey());
-//        if (clientCertPrivateKey == null) {
-//            LOGGER.warn("clientCertPrivateKey is NULL");
-//        } else {
-//            LOGGER.info("clientCertPrivateKey loaded");
-//        }
-//
-//        LOGGER.info("Trimming ClientCertPrivateKey");
-//        assert clientCertPrivateKey != null;
-//        String tmpPKey = new String(clientCertPrivateKey.readAllBytes());
-//        tmpPKey = tmpPKey.trim();
-//        clientCertPrivateKey = new ByteArrayInputStream(tmpPKey.getBytes());
-//        LOGGER.info("Trimmed ClientCertPrivateKey");
-//
-//        LOGGER.info("Parsing clientCertPrivateKey");
-//
-//
-//        byte[] buffer = clientCertPrivateKey.readAllBytes();
-//        Path privateKeyTmpPath = Files.createTempFile("client_certificate_private_key", ".pem");
-//        File targetFile = new File(privateKeyTmpPath.toString());
-//        OutputStream outStream = new FileOutputStream(targetFile);
-//        outStream.write(buffer);
-//        LOGGER.info("clientCertPrivateKey parsed");
-//
-//        LOGGER.info("Creating KeyStore");
-//        char[] keyStorePassword = UUID.randomUUID().toString().toCharArray();
-//        KeyStore webserviceKeyStore = createKeyStore(clientCert,
-//                privateKeyTmpPath.toString(),
-//                PROFILE_SERVICE.getCertifiatePassword().toCharArray(), keyStorePassword);
-//        LOGGER.info("KeyStore created");
-//
-//        LOGGER.info("Creating TrustStore");
-//        KeyStore webserviceTrustStore = createTrustStore(testCaCert);
-//        LOGGER.info("TrustSore created");
-//
-//        LOGGER.info("Generating SSLContext");
-//        SSLContext sslContext = SslConfigurator.newInstance().trustStore(webserviceTrustStore).keyStore(webserviceKeyStore)
-//                .keyStorePassword(keyStorePassword).createSSLContext();
-//        LOGGER.info("SSLContext generated");
-//
-//        targetFile.delete();
-//
-//        clientCert.close();
-//        testCaCert.close();
-//        clientCertPrivateKey.close();
-//
-//        return sslContext;
-//    }
 
-//    private static InputStream loadCertificate(String path) {
-//        if (!path.startsWith("/")) {
-//            path = "/" + path;
-//        }
-//
-//        if (PROFILE_SERVICE.getTransitProfile().equals(ProfileServiceImpl.TRANSIT_PROFILE_KUBERNETES)) {
-//            try {
-//                return new FileInputStream(path);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        } else {
-//            return WebServiceClientHelper.class.getResourceAsStream(path);
-//        }
-//    }
-
-//    public static Task getTaskByWorkflowInstanceID(String taskId) {
-//        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-//
-//        Client client;
-//        String baseUrl;
-//
-//        try {
-////            SSLContext sslContext = getSSLContext();
-//
-//            ClientBuilder builder = ClientBuilder.newBuilder();
-////            builder = builder.sslContext(sslContext);
-//
-//            builder = builder.readTimeout(TIMEOUT_S, TimeUnit.SECONDS).connectTimeout(TIMEOUT_S,
-//                    TimeUnit.SECONDS);
-//
-//            client = builder.build();
-//
-////            baseUrl = PROFILE_SERVICE.getDsfURL();
-//            //baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
-//
-//            WebTarget target = client.target(baseUrl).path(Task.class.getAnnotation(ResourceDef.class).name()
-//                    + "/" + taskId);
-//
-//            Response response = target.request()
-//                    .header(Constants.HEADER_PREFER, "handling=strict")
-//                    .accept(Constants.CT_FHIR_JSON_NEW)
-//                    .get();
-//
-//            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-//                String jsonString = response.readEntity(String.class);
-//
-//                FhirContext ctx = FhirContext.forR4();
-//                IParser parser = ctx.newJsonParser();
-//                Task task = parser.parseResource(Task.class, jsonString);
-//
-//                client.close();
-//                return task;
-//            }
-//
-//            client.close();
-//            return null;
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//    }
     public static FhirContext getFhirContext() {
         return FHIR_CONTEXT;
     }
