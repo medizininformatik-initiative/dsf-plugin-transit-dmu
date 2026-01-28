@@ -1,0 +1,58 @@
+<CodeSystem xmlns="http://hl7.org/fhir">
+	<meta>
+		<tag>
+			<system value="http://dsf.dev/fhir/CodeSystem/read-access-tag"/>
+			<code value="ALL"/>
+		</tag>
+	</meta>
+	<url value="http://datamanagementunit.eu/fhir/CodeSystem/dmu-tools"/>
+	<!-- version managed by bpe -->
+	<version value="#{version}"/>
+	<name value="DmuTools"/>
+	<title value="DmuTools"/>
+	<!-- status managed by bpe -->
+	<status value="unknown"/>
+	<experimental value="false"/>
+	<!-- date managed by bpe -->
+	<date value="#{date}"/>
+	<publisher value="Fraunhofer ISST"/>
+	<description value="CodeSystem with standard values for the Transit Dmu Tools processes"/>
+	<caseSensitive value="true"/>
+	<hierarchyMeaning value="grouped-by"/>
+	<versionNeeded value="false"/>
+	<content value="complete"/>
+	<concept>
+		<code value="store-url"/>
+		<display value="Store Url"/>
+		<definition value="Reference with identifier of a store url"/>
+	</concept>
+    <concept>
+        <code value="timer-interval" />
+        <display value="Timer Interval" />
+        <definition value="Interval between two autostarts of the Transit process" />
+    </concept>
+    <concept>
+        <code value="document-reference" />
+        <display value="Document Reference" />
+        <definition value="Document Reference ID" />
+    </concept>
+    <concept>
+        <code value="questionnare-response" />
+        <display value="Questionnare Response" />
+        <definition value="Questionnare Response ID" />
+    </concept>
+
+    <concept>
+        <code value="data-integration-center" />
+        <display value="Data Integration Center" />
+        <definition value="Data integration center" />
+    </concept>
+
+	<concept>
+		<code value="data-set-reference" />
+		<display value="Data Set Reference" />
+		<definition value="Data Set Reference" />
+	</concept>
+
+
+</CodeSystem>

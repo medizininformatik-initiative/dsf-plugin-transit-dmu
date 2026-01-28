@@ -1,0 +1,83 @@
+<Task xmlns="http://hl7.org/fhir">
+<meta>
+    <profile value="http://datamanagementunit.eu/fhir/StructureDefinition/task-initialize-new-project-data-sharing|#{version}"></profile>
+</meta>
+<instantiatesCanonical value="http://datamanagementunit.eu/bpe/Process/transit|#{version}"></instantiatesCanonical>
+<status value="draft" />
+<intent value="order" />
+<authoredOn value="#{date}" />
+<requester>
+    <type value="Organization" />
+    <identifier>
+        <system value="http://dsf.dev/sid/organization-identifier" />
+        <value value="#{organization}" />
+    </identifier>
+</requester>
+<restriction>
+    <recipient>
+        <type value="Organization" />
+        <identifier>
+            <system value="http://dsf.dev/sid/organization-identifier" />
+            <value value="#{organization}" />
+        </identifier>
+    </recipient>
+</restriction>
+<input>
+    <type>
+        <coding>
+            <system value="http://dsf.dev/fhir/CodeSystem/bpmn-message"></system>
+            <code value="message-name"></code>
+        </coding>
+    </type>
+    <valueString value="newProjectDataSharing"></valueString>
+</input>
+<input>
+    <type>
+        <coding>
+            <system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing"></system>
+            <code value="project-identifier"></code>
+        </coding>
+    </type>
+    <valueIdentifier>
+        <system value="http://medizininformatik-initiative.de/sid/project-identifier"></system>
+        <value value="Example_Project"></value>
+    </valueIdentifier>
+</input>
+<input>
+    <type>
+        <coding>
+            <system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing"></system>
+            <code value="contract-url"></code>
+        </coding>
+    </type>
+    <valueUrl value="Example_Url"></valueUrl>
+</input>
+<input>
+    <type>
+        <coding>
+            <system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing"></system>
+            <code value="researcher-identifier"></code>
+        </coding>
+    </type>
+    <valueIdentifier>
+        <system value="http://medizininformatik-initiative.de/sid/researcher-identifier"></system>
+        <value value="Example_Researcher"></value>
+    </valueIdentifier>
+</input>
+
+<input>
+    <type>
+        <coding>
+            <system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing" />
+            <code value="dic-identifier" />
+        </coding>
+    </type>
+    <valueReference>
+        <type value="Organization" />
+        <identifier>
+            <system value="http://dsf.dev/sid/organization-identifier" />
+            <value value="#{organization}" />
+        </identifier>
+    </valueReference>
+</input>
+</Task>

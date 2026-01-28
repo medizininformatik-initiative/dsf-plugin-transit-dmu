@@ -1,0 +1,89 @@
+<StructureDefinition xmlns="http://hl7.org/fhir">
+    <meta>
+        <tag>
+            <system value="http://dsf.dev/fhir/CodeSystem/read-access-tag" />
+            <code value="ALL" />
+        </tag>
+    </meta>
+    <url value="http://datamanagementunit.eu/fhir/StructureDefinition/task-dataset-timeout" />
+    <!-- version managed by bpe -->
+    <version value="#{version}" />
+    <name value="DataSetTimeOut" />
+    <!-- status managed by bpe -->
+    <status value="unknown" />
+    <experimental value="false" />
+    <!-- date managed by bpe -->
+    <date value="#{date}" />
+    <fhirVersion value="4.0.1" />
+    <kind value="resource" />
+    <abstract value="false" />
+    <type value="Task" />
+    <baseDefinition value="http://dsf.dev/fhir/StructureDefinition/task-base" />
+    <derivation value="constraint" />
+    <differential>
+        <element id="Task.instantiatesCanonical">
+            <path value="Task.instantiatesCanonical" />
+            <fixedCanonical value="http://datamanagementunit.eu/bpe/Process/transit|#{version}" />
+        </element>
+        <element id="Task.input">
+            <path value="Task.input" />
+            <min value="1" />
+            <max value="4" />
+        </element>
+        <element id="Task.input:message-name">
+            <path value="Task.input" />
+            <sliceName value="message-name" />
+        </element>
+        <element id="Task.input:message-name.value[x]">
+            <path value="Task.input.value[x]" />
+            <fixedString value="sendDataSetTimeOut" />
+        </element>
+        <element id="Task.input:business-key">
+            <path value="Task.input" />
+            <sliceName value="business-key" />
+            <max value="1" />
+        </element>
+        <element id="Task.input:correlation-key">
+            <path value="Task.input" />
+            <sliceName value="correlation-key" />
+            <max value="1" />
+        </element>
+        <element id="Task.input:questionnare-response">
+            <extension url="http://hl7.org/fhir/StructureDefinition/structuredefinition-explicit-type-name">
+                <valueString value="Parameter"/>
+            </extension>
+            <path value="Task.input"/>
+            <sliceName value="questionnare-response"/>
+        </element>
+        <element id="Task.input:questionnare-response.type">
+            <path value="Task.input.type"/>
+            <binding>
+                <extension url="http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName">
+                    <valueString value="TaskInputParameterType"/>
+                </extension>
+                <strength value="required"/>
+                <valueSet value="http://datamanagementunit.eu/fhir/ValueSet/dmu-tools"/>
+            </binding>
+        </element>
+        <element id="Task.input:questionnare-response.type.coding">
+            <path value="Task.input.type.coding"/>
+            <min value="1"/>
+            <max value="1"/>
+        </element>
+        <element id="Task.input:questionnare-response.type.coding.system">
+            <path value="Task.input.type.coding.system"/>
+            <min value="1"/>
+            <fixedUri value="http://datamanagementunit.eu/fhir/CodeSystem/dmu-tools"/>
+        </element>
+        <element id="Task.input:questionnare-response.type.coding.code">
+            <path value="Task.input.type.coding.code"/>
+            <min value="1"/>
+            <fixedCode value="questionnare-response"/>
+        </element>
+        <element id="Task.input:questionnare-response.value[x]">
+            <path value="Task.input.value[x]"/>
+        </element>
+
+
+    </differential>
+</StructureDefinition>

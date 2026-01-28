@@ -1,0 +1,85 @@
+<Task xmlns="http://hl7.org/fhir">
+    <meta>
+        <profile value="http://datamanagementunit.eu/fhir/StructureDefinition/task-initialize-new-project-data-sharing|1.0"></profile>
+    </meta>
+    <instantiatesCanonical value="http://datamanagementunit.eu/bpe/Process/transit|1.0"></instantiatesCanonical>
+    <status value="requested"/>
+    <intent value="order"/>
+    <authoredOn value="2025-11-04T10:18:51+01:00"></authoredOn>
+    <requester>
+        <type value="Organization"></type>
+        <identifier>
+            <system value="http://dsf.dev/sid/organization-identifier"></system>
+            <value value="cos.dsf.test"></value>
+        </identifier>
+    </requester>
+    <restriction>
+        <recipient>
+            <type value="Organization"></type>
+            <identifier>
+                <system value="http://dsf.dev/sid/organization-identifier"></system>
+                <value value="cos.dsf.test"></value>
+            </identifier>
+        </recipient>
+    </restriction>
+    <input>
+        <type>
+            <coding>
+                <system value="http://dsf.dev/fhir/CodeSystem/bpmn-message"></system>
+                <code value="message-name"></code>
+            </coding>
+        </type>
+        <valueString value="newProjectDataSharing"></valueString>
+    </input>
+    <input>
+        <type>
+            <coding>
+                <system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing"></system>
+                <code value="project-identifier"></code>
+            </coding>
+        </type>
+        <valueIdentifier>
+            <system value="http://medizininformatik-initiative.de/sid/project-identifier"></system>
+            <value value="WE-TRANSIT3"></value>
+        </valueIdentifier>
+    </input>
+    <input>
+        <type>
+            <coding>
+                <system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing"></system>
+                <code value="contract-url"></code>
+            </coding>
+        </type>
+        <valueUrl value="http://forschen-fuer-gesundheit.de/contract/VHF-MI-23-zentral"></valueUrl>
+    </input>
+    <input>
+        <type>
+            <coding>
+                <system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing"></system>
+                <code value="researcher-identifier"></code>
+            </coding>
+        </type>
+        <valueIdentifier>
+            <system value="http://medizininformatik-initiative.de/sid/researcher-identifier"></system>
+            <value value="researcher-1"></value>
+        </valueIdentifier>
+    </input>
+    <input>
+        <extension url="http://medizininformatik-initiative.de/fhir/Extension/dic-identifier">
+            <valueReference>
+                <type value="Organization"></type>
+                <identifier>
+                    <system value="http://dsf.dev/sid/organization-identifier"></system>
+                    <value value="dic.dsf.test"></value>
+                </identifier>
+            </valueReference>
+        </extension>
+        <type>
+            <coding>
+                <system value="http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing"></system>
+                <code value="dic-correlation-key"></code>
+            </coding>
+        </type>
+        <valueString value="e02a735e-defc-4148-87ce-47ba3b6b8a80"></valueString>
+    </input>
+</Task>

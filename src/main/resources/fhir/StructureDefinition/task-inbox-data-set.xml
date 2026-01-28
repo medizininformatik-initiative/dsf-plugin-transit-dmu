@@ -1,0 +1,222 @@
+<StructureDefinition xmlns="http://hl7.org/fhir">
+    <meta>
+        <tag>
+            <system value="http://dsf.dev/fhir/CodeSystem/read-access-tag" />
+            <code value="ALL" />
+        </tag>
+    </meta>
+    <url value="http://datamanagementunit.eu/fhir/StructureDefinition/task-inbox-data-set" />
+    <!-- version managed by bpe -->
+    <version value="#{version}" />
+    <name value="TaskInboxDataSet" />
+    <!-- status managed by bpe -->
+    <status value="unknown" />
+    <experimental value="false" />
+    <!-- date managed by bpe -->
+    <date value="#{date}" />
+    <fhirVersion value="4.0.1" />
+    <kind value="resource" />
+    <abstract value="false" />
+    <type value="Task" />
+    <baseDefinition value="http://dsf.dev/fhir/StructureDefinition/task-base" />
+    <derivation value="constraint" />
+    <differential>
+        <element id="Task.instantiatesCanonical">
+            <path value="Task.instantiatesCanonical" />
+            <fixedCanonical value="http://datamanagementunit.eu/bpe/Process/transit|#{version}" />
+        </element>
+        <element id="Task.input">
+            <path value="Task.input" />
+            <min value="6" />
+            <max value="6" />
+        </element>
+        <element id="Task.input:message-name">
+            <path value="Task.input" />
+            <sliceName value="message-name" />
+        </element>
+        <element id="Task.input:message-name.value[x]">
+            <path value="Task.input.value[x]" />
+            <fixedString value="inboxDataSet" />
+        </element>
+        <element id="Task.input:business-key">
+            <path value="Task.input" />
+            <sliceName value="business-key" />
+            <max value="1" />
+        </element>
+        <element id="Task.input:correlation-key">
+            <path value="Task.input" />
+            <sliceName value="correlation-key" />
+            <max value="1" />
+        </element>
+
+        <element id="Task.input:document-reference">
+            <extension url="http://hl7.org/fhir/StructureDefinition/structuredefinition-explicit-type-name">
+                <valueString value="Parameter"/>
+            </extension>
+            <path value="Task.input"/>
+            <sliceName value="document-reference"/>
+        </element>
+        <element id="Task.input:document-reference.type">
+            <path value="Task.input.type"/>
+            <binding>
+                <extension url="http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName">
+                    <valueString value="TaskInputParameterType"/>
+                </extension>
+                <strength value="required"/>
+                <valueSet value="http://datamanagementunit.eu/fhir/ValueSet/dmu-tools"/>
+            </binding>
+        </element>
+        <element id="Task.input:document-reference.type.coding">
+            <path value="Task.input.type.coding"/>
+            <min value="1"/>
+            <max value="1"/>
+        </element>
+        <element id="Task.input:document-reference.type.coding.system">
+            <path value="Task.input.type.coding.system"/>
+            <min value="1"/>
+            <fixedUri value="http://datamanagementunit.eu/fhir/CodeSystem/dmu-tools"/>
+        </element>
+        <element id="Task.input:document-reference.type.coding.code">
+            <path value="Task.input.type.coding.code"/>
+            <min value="1"/>
+            <fixedCode value="document-reference"/>
+        </element>
+        <element id="Task.input:document-reference.value[x]">
+            <path value="Task.input.value[x]"/>
+        </element>
+
+        <element id="Task.input:data-integration-center">
+            <extension url="http://hl7.org/fhir/StructureDefinition/structuredefinition-explicit-type-name">
+                <valueString value="Parameter"/>
+            </extension>
+            <path value="Task.input"/>
+            <sliceName value="data-integration-center"/>
+        </element>
+        <element id="Task.input:data-integration-center.type">
+            <path value="Task.input.type"/>
+            <binding>
+                <extension url="http://hl7.org/fhir/StructureDefinition/elementdefinition-bindingName">
+                    <valueString value="TaskInputParameterType"/>
+                </extension>
+                <strength value="required"/>
+                <valueSet value="http://datamanagementunit.eu/fhir/ValueSet/dmu-tools"/>
+            </binding>
+        </element>
+        <element id="Task.input:data-integration-center.type.coding">
+            <path value="Task.input.type.coding"/>
+            <min value="1"/>
+            <max value="1"/>
+        </element>
+        <element id="Task.input:data-integration-center.type.coding.system">
+            <path value="Task.input.type.coding.system"/>
+            <min value="1"/>
+            <fixedUri value="http://datamanagementunit.eu/fhir/CodeSystem/dmu-tools"/>
+        </element>
+        <element id="Task.input:data-integration-center.type.coding.code">
+            <path value="Task.input.type.coding.code"/>
+            <min value="1"/>
+            <fixedCode value="data-integration-center"/>
+        </element>
+        <element id="Task.input:data-integration-center.value[x]">
+            <path value="Task.input.value[x]"/>
+        </element>
+
+        <element id="Task.input:data-set-reference">
+            <path value="Task.input"/>
+            <sliceName value="data-set-reference"/>
+            <min value="1"/>
+            <max value="1"/>
+        </element>
+        <element id="Task.input:data-set-reference.type">
+            <path value="Task.input.type"/>
+            <binding>
+                <strength value="required"/>
+                <valueSet value="http://datamanagementunit.eu/fhir/ValueSet/dmu-tools|#{version}"/>
+            </binding>
+        </element>
+        <element id="Task.input:data-set-reference.type.coding">
+            <path value="Task.input.type.coding"/>
+            <min value="1"/>
+            <max value="1"/>
+        </element>
+        <element id="Task.input:data-set-reference.type.coding.system">
+            <path value="Task.input.type.coding.system"/>
+            <min value="1"/>
+            <fixedUri value="http://datamanagementunit.eu/fhir/CodeSystem/dmu-tools"/>
+        </element>
+        <element id="Task.input:data-set-reference.type.coding.code">
+            <path value="Task.input.type.coding.code"/>
+            <min value="1"/>
+            <fixedCode value="data-set-reference"/>
+        </element>
+        <element id="Task.input:data-set-reference.value[x]">
+            <path value="Task.input.value[x]"/>
+        </element>
+
+        <element id="Task.output:data-set-status">
+            <path value="Task.output"/>
+            <sliceName value="data-set-status"/>
+        </element>
+        <element id="Task.output:data-set-status.extension">
+            <path value="Task.output.extension" />
+            <slicing>
+                <discriminator>
+                    <type value="value" />
+                    <path value="url" />
+                </discriminator>
+                <rules value="open" />
+            </slicing>
+        </element>
+        <element id="Task.output:data-set-status.extension:extension-data-set-status-error">
+            <path value="Task.output.extension" />
+            <sliceName value="extension-data-set-status-error" />
+            <min value="0" />
+            <max value="1" />
+            <type>
+                <code value="Extension" />
+                <profile value="http://datamanagementunit.eu/fhir/StructureDefinition/extension-data-set-status-error" />
+            </type>
+        </element>
+        <element id="Task.output:data-set-status.type">
+            <path value="Task.output.type"/>
+            <binding>
+                <strength value="required"/>
+                <valueSet value="http://datamanagementunit.eu/fhir/ValueSet/data-sharing|#{version}"/>
+            </binding>
+        </element>
+        <element id="Task.output:data-set-status.type.coding">
+            <path value="Task.output.type.coding"/>
+            <min value="1"/>
+            <max value="1"/>
+        </element>
+        <element id="Task.output:data-set-status.type.coding.system">
+            <path value="Task.output.type.coding.system"/>
+            <min value="1"/>
+            <fixedUri value="http://datamanagementunit.eu/fhir/CodeSystem/data-sharing"/>
+        </element>
+        <element id="Task.output:data-set-status.type.coding.code">
+            <path value="Task.output.type.coding.code"/>
+            <min value="1"/>
+            <fixedCode value="data-set-status"/>
+        </element>
+        <element id="Task.output:data-set-status.value[x]">
+            <path value="Task.output.value[x]"/>
+            <type>
+                <code value="Coding"/>
+            </type>
+        </element>
+        <element id="Task.output:data-set-status.value[x].system">
+            <path value="Task.output.value[x].system"/>
+            <min value="1"/>
+            <fixedUri value="http://datamanagementunit.eu/fhir/CodeSystem/data-set-status"/>
+        </element>
+        <element id="Task.output:data-set-status.value[x].code">
+            <path value="Task.output.value[x].code"/>
+            <min value="1"/>
+            <binding>
+                <strength value="required"/>
+                <valueSet value="http://datamanagementunit.eu/fhir/ValueSet/data-set-status-receive|#{version}"/>
+            </binding>
+        </element>
+    </differential>
+</StructureDefinition>

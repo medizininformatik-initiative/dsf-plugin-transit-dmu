@@ -1,0 +1,55 @@
+<CodeSystem xmlns="http://hl7.org/fhir">
+	<meta>
+		<tag>
+			<system value="http://dsf.dev/fhir/CodeSystem/read-access-tag"/>
+			<code value="ALL"/>
+		</tag>
+	</meta>
+	<url value="http://datamanagementunit.eu/fhir/CodeSystem/pseudonymization-type"/>
+	<!-- version managed by bpe -->
+	<version value="#{version}"/>
+	<name value="PseudonymizationType"/>
+	<title value="PseudonymizationType"/>
+	<!-- status managed by bpe -->
+	<status value="unknown"/>
+	<experimental value="false"/>
+	<!-- date managed by bpe -->
+	<date value="#{date}"/>
+	<publisher value="Fraunhofer ISST"/>
+	<description value="CodeSystem with standard values for the MII Pseudonymization processes"/>
+	<caseSensitive value="true"/>
+	<hierarchyMeaning value="grouped-by"/>
+	<versionNeeded value="false"/>
+	<content value="complete"/>
+	<concept>
+		<code value="dms-psn"/>
+		<display value="DMS Pseudonym"/>
+		<definition value="DMS creates a unique pseudonym for the patient"/>
+	</concept>
+	<concept>
+		<code value="dms-psn-loc-psn"/>
+		<display value="DMS Pseudonym plus Location Pseudonym"/>
+		<definition value="DMS creates a unique pseudonym for the patient and adds a pseudonym for the location"/>
+	</concept>
+	<concept>
+		<code value="dms-psn-loc"/>
+		<display value="DMS Pseudonym plus Location"/>
+		<definition value="DMS creates a unique pseudonym for the patient and also adds the location"/>
+	</concept>
+	<concept>
+		<code value="project-psn"/>
+		<display value="Project Pseudonym"/>
+		<definition value="DMS uses the pseudonym provided by the dic for the patient"/>
+	</concept>
+	<concept>
+		<code value="project-psn-loc-psn"/>
+		<display value="Project Pseudonym"/>
+		<definition value="DMS uses the pseudonym provided by the dic for the patient and adds a pseudonym for the location"/>
+	</concept>
+	<concept>
+		<code value="project-psn-loc"/>
+		<display value="Project Pseudonym"/>
+		<definition value="DMS uses the pseudonym provided by the dic for the patient and adds the location"/>
+	</concept>
+
+</CodeSystem>

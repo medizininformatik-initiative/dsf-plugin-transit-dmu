@@ -1,0 +1,96 @@
+<ActivityDefinition xmlns="http://hl7.org/fhir">
+	<meta>
+		<tag>
+			<system value="http://dsf.dev/fhir/CodeSystem/read-access-tag"/>
+			<code value="ALL"/>
+		</tag>
+	</meta>
+	<extension
+			url="http://dsf.dev/fhir/StructureDefinition/extension-process-authorization">
+		<extension url="message-name">
+			<valueString value="newProjectDataSharing"/>
+		</extension>
+		<extension url="task-profile">
+			<valueCanonical
+					value="http://datamanagementunit.eu/fhir/StructureDefinition/task-initialize-new-project-data-sharing|#{version}"/>
+		</extension>
+        <extension url="requester">
+            <valueCoding>
+                <system value="http://dsf.dev/fhir/CodeSystem/process-authorization"/>
+                <code value="LOCAL_ALL"/>
+            </valueCoding>
+        </extension>
+        <extension url="recipient">
+            <valueCoding>
+                <system value="http://dsf.dev/fhir/CodeSystem/process-authorization" />
+                <code value="LOCAL_ALL" />
+            </valueCoding>
+        </extension>
+	</extension>
+	<extension
+			url="http://dsf.dev/fhir/StructureDefinition/extension-process-authorization">
+		<extension url="message-name">
+			<valueString value="inboxDataSet"/>
+		</extension>
+		<extension url="task-profile">
+			<valueCanonical
+					value="http://datamanagementunit.eu/fhir/StructureDefinition/task-inbox-data-set|#{version}"/>
+		</extension>
+        <extension url="requester">
+            <valueCoding>
+                <system value="http://dsf.dev/fhir/CodeSystem/process-authorization"/>
+                <code value="LOCAL_ALL"/>
+            </valueCoding>
+        </extension>
+        <extension url="recipient">
+            <valueCoding>
+                <system value="http://dsf.dev/fhir/CodeSystem/process-authorization" />
+                <code value="LOCAL_ALL" />
+            </valueCoding>
+        </extension>
+    </extension>
+    <extension
+            url="http://dsf.dev/fhir/StructureDefinition/extension-process-authorization">
+        <extension url="message-name">
+            <valueString value="sendDataSetTimeOut"/>
+        </extension>
+        <extension url="task-profile">
+            <valueCanonical
+                    value="http://datamanagementunit.eu/fhir/StructureDefinition/task-dataset-timeout|#{version}"/>
+        </extension>
+        <extension url="requester">
+            <valueCoding>
+                <system value="http://dsf.dev/fhir/CodeSystem/process-authorization"/>
+                <code value="LOCAL_ALL"/>
+            </valueCoding>
+        </extension>
+        <extension url="recipient">
+            <valueCoding>
+                <system value="http://dsf.dev/fhir/CodeSystem/process-authorization" />
+                <code value="LOCAL_ALL" />
+            </valueCoding>
+        </extension>
+    </extension>
+	<url value="http://datamanagementunit.eu/bpe/Process/transit"/>
+	<!-- version managed by bpe -->
+	<version value="#{version}"/>
+	<name value="Transit"/>
+	<title value="Transit Process"/>
+	<subtitle value="Transit Process in a DMS requested by a DMS"/>
+	<!-- status managed by bpe -->
+	<status value="unknown"/>
+	<experimental value="false"/>
+	<!-- date managed by bpe -->
+	<date value="#{date}"/>
+	<publisher value="Fraunhofer ISST"/>
+	<contact>
+		<name value="Fraunhofer ISST"/>
+		<telecom>
+			<system value="email"/>
+			<value value="support.healtchcare@isst.fraunhofer.de"/>
+		</telecom>
+	</contact>
+	<description
+			value="Process to merge data received from multiple MDICs belonging to an approved data sharing project"/>
+	<kind value="Task"/>
+</ActivityDefinition>
