@@ -2,7 +2,6 @@ package de.fraunhofer.isst.health.transit;
 
 public interface ConstantsTransit
 {
-
 	String PROCESS_TRANSIT_NAME_BASE = "datamanagementuniteu_";
 
 	String PROCESS_NAME_TRANSIT = "transit";
