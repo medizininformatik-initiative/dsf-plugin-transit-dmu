@@ -62,7 +62,7 @@ apiVersion: v1
 metadata:
   name: archive-${dupId}-claim
 spec:
-  storageClassName: ssd
+  storageClassName: nfs
   accessModes:
     - ReadWriteMany
   resources:
