@@ -3,6 +3,7 @@ package de.fraunhofer.isst.health.transit.spring.config;
 import de.fraunhofer.isst.health.transit.utils.gpas.GpasManager;
 import de.fraunhofer.isst.health.transit.utils.gpas.domain.DomainManagerBeanService;
 import de.fraunhofer.isst.health.transit.utils.gpas.psn.PSNManagerBeanService;
+import dev.dsf.bpe.v1.documentation.ProcessDocumentation;
 import org.apache.cxf.bus.spring.SpringBus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +20,9 @@ import java.net.URL;
 public class GpasManagerConfig
 {
 
+    @ProcessDocumentation(required = true, processNames = {
+            "datamanagementuniteu_transit" }, description = "The base address of the Gpas server " +
+            "to read/store Pseudonyms", example = "http://foo.bar/fhir")
     @Value("${eu.datamanagementunit.transit.gpas.url:#{null}}")
     private String gpasUrl;
 

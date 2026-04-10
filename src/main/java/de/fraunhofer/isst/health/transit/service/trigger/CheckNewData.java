@@ -51,16 +51,12 @@ public class CheckNewData extends AbstractServiceDelegate
 				.usingStyle(SearchStyleEnum.POST)
 				.execute();
 
-		logger.info("Number of data found: "+ result.getTotal());
-
 		FhirWebserviceClient fhirWebserviceClient = api.getFhirWebserviceClientProvider().getLocalWebserviceClient();
 		Map<String, List<String>> parameters = new HashMap<>();
 		parameters.put("_profile", List.of("http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing"));
 		parameters.put("status", List.of("in-progress"));
 		parameters.put("_sort", List.of("-_lastUpdated"));
 		Bundle bundle = fhirWebserviceClient.search(Task.class, parameters);
-
-		logger.info("Number of active merge process found: "+ bundle.getTotal());
 
 		List<Task> tasks = bundle.getEntry().stream()
 				.filter(entry -> entry.getResource() instanceof Task)

@@ -41,8 +41,6 @@ public class CheckNewProject extends AbstractServiceDelegate
 		parameters.put("_lastUpdated", List.of("ge" + from));
 		Bundle result = fhirWebserviceClient.search(Task.class, parameters);
 
-		logger.info("Number of new Projects: " + result.getTotal());
-
 		List<Task> tasks = result.getEntry().stream()
 				.filter(entry -> entry.getResource() instanceof Task)
 				.map(entry -> (Task) entry.getResource())
@@ -54,7 +52,7 @@ public class CheckNewProject extends AbstractServiceDelegate
 				.toList();
 
 		if (taskIds != null && !taskIds.isEmpty()){
-			logger.info("Number of Task Ids: " + taskIds.size());
+			logger.info("Number of New Projects: " + taskIds.size());
 			variables.setResourceList(BPMN_EXECUTION_PROJECTS, tasks);
 			variables.setVariable(BPMN_EXECUTION_PROJECT_IDS,
 					TasksValues.create(new Tasks(taskIds)));

@@ -42,8 +42,6 @@ public class CheckCloseProject extends AbstractServiceDelegate
 		parameters.put("_lastUpdated", List.of("ge" + from));
 		Bundle result = fhirWebserviceClient.search(QuestionnaireResponse.class, parameters);
 
-		logger.info("Number of process to close: " + result.getTotal());
-
 		List<QuestionnaireResponse> tasks = result.getEntry().stream()
 				.filter(entry -> entry.getResource() instanceof QuestionnaireResponse)
 				.map(entry -> (QuestionnaireResponse) entry.getResource())
@@ -55,6 +53,8 @@ public class CheckCloseProject extends AbstractServiceDelegate
 				.toList();
 
 		if (taskIds != null && !taskIds.isEmpty()){
+
+			logger.info("Number of process to close: " + taskIds.size());
 			variables.setResourceList(BPMN_EXECUTION_CLOSE_PROCESS_LIST, tasks);
 			variables.setVariable(BPMN_EXECUTION_CLOSE_PROCESS_IDS,
 					TasksValues.create(new Tasks(taskIds)));

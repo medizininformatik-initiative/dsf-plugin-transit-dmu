@@ -45,9 +45,9 @@ public class SetTargetAndConfigureTimer extends AbstractServiceDelegate
 			ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());
 			timerNow = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 		}
-		logger.info("Time to query from: '{}'", timerFrom);
+		//logger.info("Time to query from: '{}'", timerFrom);
 		variables.setString(BPMN_EXECUTION_VARIABLE_FROM, timerFrom);
-		logger.info("Current time: '{}'", timerNow);
+		//logger.info("Current time: '{}'", timerNow);
 		variables.setString(BPMN_EXECUTION_VARIABLE_CURRENT, timerNow);
 
 		variables.setString(BPMN_EXECUTION_VARIABLE_TIMER_INTERVAL, timerInterval);

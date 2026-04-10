@@ -277,7 +277,7 @@
 				</executions>
 				<configuration>
 					<workingPackages>
-						<workingPackage>de.medizininformatik_initiative.process.data_sharing</workingPackage>
+						<workingPackage>de.fraunhofer.isst.health.transit</workingPackage>
 					</workingPackages>
 				</configuration>
 			</plugin>
