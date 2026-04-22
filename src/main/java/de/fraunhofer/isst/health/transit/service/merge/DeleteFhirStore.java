@@ -1,73 +1,89 @@
 package de.fraunhofer.isst.health.transit.service.merge;
 
-import ca.uhn.fhir.context.FhirContext;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
+import dev.dsf.bpe.v1.activity.AbstractTaskMessageSend;
 import dev.dsf.bpe.v1.variables.Variables;
 import dev.dsf.fhir.client.FhirWebserviceClient;
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.pkcs.PKCSException;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.hl7.fhir.r4.model.QuestionnaireResponse;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Task;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.logging.Logger;
+import java.util.stream.Stream;
 
-public class DeleteFhirStore extends AbstractServiceDelegate {
-    private static final Logger LOGGER = Logger.getLogger(DeleteFhirStore.class.getName());
+public class DeleteFhirStore extends AbstractTaskMessageSend {
+    private static final Logger logger = LoggerFactory.getLogger(DeleteFhirStore.class);
 
     public DeleteFhirStore(ProcessPluginApi api) {
         super(api);
     }
 
     @Override
-    protected void doExecute(DelegateExecution delegateExecution, Variables variables) throws Exception {
-        LOGGER.info("DeleteFhirStore start");
+    protected Stream<Task.ParameterComponent> getAdditionalInputParameters(DelegateExecution execution,
+                                                                           Variables variables)
+    {
+        String projectIdentifier = variables
+                .getString(ConstantsTransit.DUPIDENTIFIER);
+        Task.ParameterComponent projectIdentifierInput = getProjectIdentifierInput(projectIdentifier);
 
-        requestFHIRStoreDeletion(delegateExecution);
+        Stream<Task.ParameterComponent> otherInputs = Stream.of(projectIdentifierInput);
+
+        return Stream.of(otherInputs).reduce(Stream::concat)
+                .orElseThrow(() -> new RuntimeException("Could not concat streams"));
     }
 
-    private void requestFHIRStoreDeletion(DelegateExecution delegateExecution)
-            throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
+    private Task.ParameterComponent getProjectIdentifierInput(String projectIdentifier)
+    {
+        Task.ParameterComponent projectIdentifierInput = new Task.ParameterComponent();
+        projectIdentifierInput.getType().addCoding().setSystem(ConstantsTransit.CODESYSTEM_DATA_SHARING)
+                .setCode(ConstantsTransit.CODESYSTEM_DATA_SHARING_VALUE_PROJECT_IDENTIFIER);
+        projectIdentifierInput.setValue(new Identifier().setSystem(ConstantsBase.NAMINGSYSTEM_MII_PROJECT_IDENTIFIER)
+                .setValue(projectIdentifier));
 
-        String taskString = IOUtils.toString(getClass().getResourceAsStream("/fhir/Task/task-delete-store.xml"), StandardCharsets.UTF_8);
-        String dupIdentifier = ((String) delegateExecution.getVariable(ConstantsTransit.DUPIDENTIFIER));
-
-        String pattern = "yyyy-MM-dd'T'HH:mm:ssXXX";
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
-        String date = simpleDateFormat.format(new Date());
-
-        taskString = taskString.replace("#{date}", date);
-        taskString = taskString.replace("#{version}", ConstantsTransit.FHIR_STORE_VERSION);
-        taskString = taskString.replace("#{requester}", ConstantsTransit.FHIR_STORE_REQUESTER);
-        taskString = taskString.replace("#{recipient}", ConstantsTransit.FHIR_STORE_RECIPIENT);
-        taskString = taskString.replace("#{project-identifier}", dupIdentifier);
-        taskString = taskString.replace("#{business-key}", delegateExecution.getBusinessKey());
-
-        Task task = FhirContext.forR4().newXmlParser().parseResource(Task.class, taskString);
-
-        //WebServiceClientHelper.postFhirResource(task);
-        FhirWebserviceClient fhirWebserviceClient = api.getFhirWebserviceClientProvider().getLocalWebserviceClient();
-        fhirWebserviceClient.create(task);
+        return projectIdentifierInput;
     }
 
-    private void updateStoreDeletionQR(DelegateExecution delegateExecution) throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
-        FhirWebserviceClient fhirWebserviceClient = api.getFhirWebserviceClientProvider().getLocalWebserviceClient();
-        String qrId = (String) delegateExecution.getVariable("storeDeletionQrId");
-
-        QuestionnaireResponse object =
-                (QuestionnaireResponse) fhirWebserviceClient.read("QuestionnaireResponse", qrId);
-
-        object.setStatus(QuestionnaireResponse.QuestionnaireResponseStatus.COMPLETED);
-        fhirWebserviceClient.update(object);
-
+    @Override
+    protected IdType doSend(FhirWebserviceClient client, Task task)
+    {
+        return client.withMinimalReturn()
+                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
+                .create(task);
     }
+
+    @Override
+    protected void handleSendTaskError(DelegateExecution execution, Variables variables, Exception exception,
+                                       String errorMessage)
+    {
+        Task task = variables.getStartTask();
+        addErrorMessage(task, errorMessage);
+
+        logger.debug("Error while executing Task message send " + this.getClass().getName(), exception);
+        logger.error("Process {} has fatal error in step {} for task {}, reason: {}",
+                execution.getProcessDefinitionId(), execution.getActivityInstanceId(), task.getId(),
+                exception.getMessage());
+
+        try
+        {
+            if (task != null)
+            {
+                task.setStatus(Task.TaskStatus.FAILED);
+                api.getFhirWebserviceClientProvider().getLocalWebserviceClient().withMinimalReturn().update(task);
+            }
+            else
+            {
+                logger.warn("Start Task null, unable update Task with failed state");
+            }
+        }
+        finally
+        {
+            execution.getProcessEngine().getRuntimeService().deleteProcessInstance(execution.getProcessInstanceId(),
+                    exception.getMessage());
+        }
+    }
+
 }
