@@ -14,9 +14,9 @@ public class RecieveTaskListener extends AbstractServiceDelegate
 
     private static final Logger LOGGER = Logger.getLogger(RecieveTaskListener.class.getName());
 
-	public RecieveTaskListener(ProcessPluginApi api)
+	public RecieveTaskListener()
 	{
-		super(api);
+		super();
 	}
 
 	@Override

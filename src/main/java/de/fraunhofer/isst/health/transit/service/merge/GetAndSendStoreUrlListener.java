@@ -3,12 +3,12 @@ package de.fraunhofer.isst.health.transit.service.merge;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
-import dev.dsf.fhir.client.FhirWebserviceClient;
-import org.bouncycastle.pkcs.PKCSException;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
+import dev.dsf.bpe.v2.client.dsf.DsfClient;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
@@ -18,27 +18,28 @@ import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class GetAndSendStoreUrlListener extends AbstractServiceDelegate {
+public class GetAndSendStoreUrlListener implements ServiceTask {
     private static final Logger LOGGER = Logger.getLogger(GetAndSendStoreUrlListener.class.getName());
 
-    public GetAndSendStoreUrlListener(ProcessPluginApi api) {
-        super(api);
+    public GetAndSendStoreUrlListener() {
+        super();
     }
 
     @Override
-    protected void doExecute(DelegateExecution delegateExecution, Variables variables) throws Exception {
-        String dupIdentifier = (String) delegateExecution.getVariable(ConstantsTransit.DUPIDENTIFIER);
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+        String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
 
         //Get ID of QuestionnaireResponse
-        String qsId = (String) delegateExecution.getVariable(ConstantsTransit.QUESTIONNAIREID);
+        String qsId = variables.getString(ConstantsTransit.QUESTIONNAIREID);
 
         //Get URL to the CollectionBundle on the FHIR-Store
-        String collectionURL = (String) delegateExecution.getVariable(ConstantsTransit.COLLECTIONURL);
+        String collectionURL = variables.getString(ConstantsTransit.COLLECTIONURL);
 
-        QuestionnaireResponse questionnaireResponse = getQuestionnaireResponse(qsId);
+        QuestionnaireResponse questionnaireResponse = getQuestionnaireResponse(api, qsId);
 
         for (QuestionnaireResponse.QuestionnaireResponseItemComponent component: questionnaireResponse.getItem()) {
             switch (component.getLinkId()) {
@@ -55,19 +56,19 @@ public class GetAndSendStoreUrlListener extends AbstractServiceDelegate {
 
         questionnaireResponse.setStatus(QuestionnaireResponse.QuestionnaireResponseStatus.COMPLETED);
 
-        delegateExecution.setVariable(ConstantsTransit.QUESTIONNAIRERESPONSE, questionnaireResponse);
+        variables.setFhirResource(ConstantsTransit.QUESTIONNAIRERESPONSE, questionnaireResponse);
 
         LOGGER.log(Level.INFO, "QuestionnaireResponse CollectionURL: " + collectionURL);
         LOGGER.log(Level.INFO, "QuestionnaireResponse release: " + dupIdentifier);
     }
 
-    private QuestionnaireResponse getQuestionnaireResponse(String qsId) throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
-
+    private QuestionnaireResponse getQuestionnaireResponse(ProcessPluginApi api, String qsId) {
         LOGGER.log(Level.INFO, "QuestionnaireResponse ID: " + qsId);
-        FhirWebserviceClient fhirWebserviceClient = api.getFhirWebserviceClientProvider().getLocalWebserviceClient();
+
+        DsfClient dsfClient = api.getDsfClientProvider().getLocal();
 
         Resource object =
-                fhirWebserviceClient.read("QuestionnaireResponse", qsId);
+                dsfClient.read("QuestionnaireResponse", qsId);
 
         FhirContext ctx = FhirContext.forR4();
         IParser parser = ctx.newJsonParser();

@@ -21,9 +21,9 @@ public class SendCloseProject extends AbstractTaskMessageSend
 {
 	private static final Logger logger = LoggerFactory.getLogger(SendCloseProject.class);
 
-	public SendCloseProject(ProcessPluginApi api)
+	public SendCloseProject()
 	{
-		super(api);
+		super();
 	}
 
 	@Override

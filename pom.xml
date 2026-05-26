@@ -10,10 +10,11 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<compileSource>17</compileSource>
-		<compileTarget>17</compileTarget>
+        <compileSource>17</compileSource>
+        <compileTarget>17</compileTarget>
 
-		<dsf.version>1.6.0</dsf.version>
+        <maven.compiler.release>25</maven.compiler.release>
+        <dsf.version>2.1.0</dsf.version>
 		<testSetup.location>../mii-processes-test-setup</testSetup.location>
 	</properties>
 
@@ -52,7 +53,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>dev.dsf</groupId>
-			<artifactId>dsf-bpe-process-api-v1</artifactId>
+			<artifactId>dsf-bpe-process-api-v2</artifactId>
 			<version>${dsf.version}</version>
 			<scope>provided</scope>
 		</dependency>
@@ -131,14 +132,18 @@
         </dependency>
 
 		<!-- testing -->
+
+        <!--
 		<dependency>
 			<groupId>dev.dsf</groupId>
-			<artifactId>dsf-bpe-process-api-v1</artifactId>
+			<artifactId>dsf-bpe-process-api-v2</artifactId>
 			<version>${dsf.version}</version>
-			<scope>test</scope>
+            <scope>test</scope>
 			<type>test-jar</type>
 		</dependency>
-		<dependency>
+		-->
+
+        <dependency>
 			<groupId>dev.dsf</groupId>
 			<artifactId>dsf-fhir-validation</artifactId>
 			<version>${dsf.version}</version>
@@ -266,19 +271,19 @@
 			</plugin>
 			<plugin>
 				<groupId>dev.dsf</groupId>
-				<artifactId>dsf-tools-documentation-generator</artifactId>
+				<artifactId>dsf-maven-plugin</artifactId>
 				<version>${dsf.version}</version>
 				<executions>
 					<execution>
 						<goals>
-							<goal>generate</goal>
+							<goal>generate-config-doc</goal>
 						</goals>
 					</execution>
 				</executions>
 				<configuration>
-					<workingPackages>
-						<workingPackage>de.fraunhofer.isst.health.transit</workingPackage>
-					</workingPackages>
+                    <configDocPackages>
+                        <configDocPackage>your.package.spring.config</configDocPackage>
+                    </configDocPackages>
 				</configuration>
 			</plugin>
 			<plugin>

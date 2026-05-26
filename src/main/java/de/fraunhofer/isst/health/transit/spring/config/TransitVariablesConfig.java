@@ -42,7 +42,7 @@ public class TransitVariablesConfig
 	private int gpasPsnLength;
 
 	@ProcessDocumentation(required = true, processNames = {
-			"datamanagementuniteu_transit" }, description = "The base address of the Fhir Sotres",
+			"datamanagementuniteu_transit" }, description = "The base address of the Fhir Stores",
 			example = "http://foo.bar")
 	@Value("${eu.datamanagementunit.store.hostname:#{null}}")
 	private String storeHostname;

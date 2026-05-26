@@ -21,9 +21,9 @@ public class SendNewProject extends AbstractTaskMessageSend
 {
 	private static final Logger logger = LoggerFactory.getLogger(SendNewProject.class);
 
-	public SendNewProject(ProcessPluginApi api)
+	public SendNewProject()
 	{
-		super(api);
+		super();
 	}
 
 	@Override

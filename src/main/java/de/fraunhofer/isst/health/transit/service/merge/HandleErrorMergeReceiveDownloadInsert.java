@@ -14,9 +14,7 @@ public class HandleErrorMergeReceiveDownloadInsert extends AbstractServiceDelega
 {
 	private static final Logger logger = LoggerFactory.getLogger(HandleErrorMergeReceiveDownloadInsert.class);
 
-	public HandleErrorMergeReceiveDownloadInsert(ProcessPluginApi api)
-	{
-		super(api);
+	public HandleErrorMergeReceiveDownloadInsert() {
 	}
 
 	@Override

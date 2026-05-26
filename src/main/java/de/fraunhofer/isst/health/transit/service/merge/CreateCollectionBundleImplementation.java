@@ -7,11 +7,10 @@ import de.fraunhofer.isst.health.transit.utils.StoreUtils;
 import de.fraunhofer.isst.health.transit.utils.WebServiceClientHelper;
 import de.fraunhofer.isst.health.transit.utils.projectfile.helper.MiiFhirComplexClientHelper;
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.MIIPerson;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.Bundle;
 
 import java.net.URLEncoder;
@@ -26,44 +25,42 @@ import java.util.logging.Logger;
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.CODESYSTEM_DMU_TOOLS;
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.CODESYSTEM_DMU_VALUE_QUESTIONNARE_RESPONSE;
 
-public class CreateCollectionBundleImplementation extends AbstractServiceDelegate {
+public class CreateCollectionBundleImplementation implements ServiceTask {
 	private static final Logger LOGGER = Logger.getLogger(CreateCollectionBundleImplementation.class.getName());
 	private DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig;
 	private TransitVariablesConfig transitVariablesConfig;
 
-	public CreateCollectionBundleImplementation(ProcessPluginApi api, DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig, TransitVariablesConfig transitVariablesConfig) {
-		super(api);
-		this.dmsProjectFileFhirClientConfig = dmsProjectFileFhirClientConfig;
+	public CreateCollectionBundleImplementation(DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig, TransitVariablesConfig transitVariablesConfig) {
+		super();
+        this.dmsProjectFileFhirClientConfig = dmsProjectFileFhirClientConfig;
 		this.transitVariablesConfig = transitVariablesConfig;
 	}
 
-	@Override
-	protected void doExecute(DelegateExecution delegateExecution, Variables variables) throws BpmnError, Exception {
+    @Override
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+        String fhirStoreUrl = variables.getString(ConstantsTransit.FHIRSTOREURL);
+        LOGGER.log(Level.INFO, "Start CreateCollectionBundleImplementation for Fhir Store: "+fhirStoreUrl);
 
+        String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
+        String parameter = URLEncoder.encode(fhirStoreUrl, StandardCharsets.UTF_8);
 
-		String fhirStoreUrl = (String) delegateExecution.getVariable(ConstantsTransit.FHIRSTOREURL);
-		LOGGER.log(Level.INFO, "Start CreateCollectionBundleImplementation for Fhir Store: "+fhirStoreUrl);
+        Optional<String> questionnareResponseId = api.getTaskHelper().getFirstInputParameterStringValue(variables.getLatestTask(),
+                CODESYSTEM_DMU_TOOLS, CODESYSTEM_DMU_VALUE_QUESTIONNARE_RESPONSE);
 
-		String dupIdentifier = (String) delegateExecution.getVariable(ConstantsTransit.DUPIDENTIFIER);
-		String parameter = URLEncoder.encode(fhirStoreUrl, StandardCharsets.UTF_8);
+        LOGGER.log(Level.INFO, "Latest Task for extracting Questionnare Response: "+variables.getLatestTask().getId());
+        LOGGER.log(Level.INFO, "Questionnare Response ID: "+questionnareResponseId.get());
 
-		Optional<String> questionnareResponseId = api.getTaskHelper().getFirstInputParameterStringValue(variables.getLatestTask(),
-				CODESYSTEM_DMU_TOOLS, CODESYSTEM_DMU_VALUE_QUESTIONNARE_RESPONSE);
+        variables.setString(ConstantsTransit.QUESTIONNAIREID, questionnareResponseId.orElse(""));
 
-		LOGGER.log(Level.INFO, "Latest Task for extracting Questionnare Response: "+variables.getLatestTask().getId());
-		LOGGER.log(Level.INFO, "Questionnare Response ID: "+questionnareResponseId.get());
+        String collectionURL = createCollectionBundle(dupIdentifier, fhirStoreUrl, variables);
 
-		delegateExecution.setVariable(ConstantsTransit.QUESTIONNAIREID, questionnareResponseId.orElse(""));
-
-		String collectionURL = createCollectionBundle(dupIdentifier, fhirStoreUrl, variables);
-
-		if ("error".equalsIgnoreCase(collectionURL)) {
-			LOGGER.severe("Collection could not be created");
-		} else {
-			LOGGER.log(Level.INFO, "Collection-URL: " + collectionURL);
-		}
-		delegateExecution.setVariable(ConstantsTransit.COLLECTIONURL, collectionURL);
-	}
+        if ("error".equalsIgnoreCase(collectionURL)) {
+            LOGGER.severe("Collection could not be created");
+        } else {
+            LOGGER.log(Level.INFO, "Collection-URL: " + collectionURL);
+        }
+        variables.setString(ConstantsTransit.COLLECTIONURL, collectionURL);
+    }
 
 	public String createCollectionBundle(String dupIdentifier, String url, Variables variables) {
 		String content;
@@ -114,7 +111,7 @@ public class CreateCollectionBundleImplementation extends AbstractServiceDelegat
 			//if (collectionBundle.getEntry().size() > 0) {
 			String fileName = "DataFile_" + dupIdentifier + ".json";
 
-			variables.setResource(ConstantsTransit.COLLECTION_BUNDLE, collectionBundle);
+			variables.setFhirResource(ConstantsTransit.COLLECTION_BUNDLE, collectionBundle);
 
 			content = StoreUtils.getFHIRCONTEXT().newJsonParser().encodeResourceToString(collectionBundle);
 			returnUrl = StoreUtils.createDownloadFile(transitVariablesConfig, fileName, content);
@@ -137,6 +134,5 @@ public class CreateCollectionBundleImplementation extends AbstractServiceDelegat
 			return returnUrl;
 		}
 	}
-
 
 }

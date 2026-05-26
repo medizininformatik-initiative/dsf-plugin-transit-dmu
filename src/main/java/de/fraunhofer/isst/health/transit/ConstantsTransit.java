@@ -90,6 +90,7 @@ public interface ConstantsTransit
 	 String DSF_TASK_DATASHARING_DIC_IDENTIFIER2
 			= "http://medizininformatik-initiative.de/fhir/Extension/dic-identifier";
 	 String DSF_TASK_DATASHARING_PROJECTIDENTIFIER = "project-identifier";
+	 String DSF_TASK_DATASHARING_BUSSINESS_KEY = "businessKey";
 	 String DSF_TASK_DATASHARING_CONTRACTLOCATION = "contract-url";
 	 String DSF_TASK_DATASHARING_RESEARCHERIDENTIFIER = "researcher-identifier";
 	 String DSF_TASK_DATASHARING_PROJECTTITLE = "project-title";

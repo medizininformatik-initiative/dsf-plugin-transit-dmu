@@ -13,9 +13,7 @@ public class HandleErrorMergeRelease extends AbstractServiceDelegate
 {
 	private static final Logger logger = LoggerFactory.getLogger(HandleErrorMergeRelease.class);
 
-	public HandleErrorMergeRelease(ProcessPluginApi api)
-	{
-		super(api);
+	public HandleErrorMergeRelease() {
 	}
 
 	@Override

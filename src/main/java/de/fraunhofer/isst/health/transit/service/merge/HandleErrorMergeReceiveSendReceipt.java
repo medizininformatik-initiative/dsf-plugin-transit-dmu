@@ -14,9 +14,7 @@ public class HandleErrorMergeReceiveSendReceipt extends AbstractServiceDelegate
 {
 	private static final Logger logger = LoggerFactory.getLogger(HandleErrorMergeReceiveSendReceipt.class);
 
-	public HandleErrorMergeReceiveSendReceipt(ProcessPluginApi api)
-	{
-		super(api);
+	public HandleErrorMergeReceiveSendReceipt()	{
 	}
 
 	@Override

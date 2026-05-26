@@ -20,9 +20,9 @@ public class SendNewData extends AbstractTaskMessageSend
 {
 	private static final Logger logger = LoggerFactory.getLogger(SendNewData.class);
 
-	public SendNewData(ProcessPluginApi api)
+	public SendNewData()
 	{
-		super(api);
+		super();
 	}
 
 	@Override

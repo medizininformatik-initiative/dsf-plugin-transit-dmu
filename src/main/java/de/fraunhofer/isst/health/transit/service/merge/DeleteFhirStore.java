@@ -18,8 +18,8 @@ import java.util.stream.Stream;
 public class DeleteFhirStore extends AbstractTaskMessageSend {
     private static final Logger logger = LoggerFactory.getLogger(DeleteFhirStore.class);
 
-    public DeleteFhirStore(ProcessPluginApi api) {
-        super(api);
+    public DeleteFhirStore() {
+        super();
     }
 
     @Override

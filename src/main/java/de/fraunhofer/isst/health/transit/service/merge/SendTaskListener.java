@@ -24,8 +24,8 @@ import java.util.logging.Logger;
 public class SendTaskListener extends AbstractServiceDelegate {
     private static final Logger LOGGER = Logger.getLogger(SendTaskListener.class.getName());
 
-    public SendTaskListener(ProcessPluginApi api) {
-        super(api);
+    public SendTaskListener() {
+        super();
     }
 
     @Override

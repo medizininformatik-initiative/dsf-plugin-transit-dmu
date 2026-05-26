@@ -10,12 +10,11 @@ import de.fraunhofer.isst.health.transit.utils.gpas.domain.DomainConfig;
 import de.fraunhofer.isst.health.transit.utils.gpas.domain.DomainInDTO;
 import de.fraunhofer.isst.health.transit.utils.gpas.domain.DomainOutDTO;
 import de.fraunhofer.isst.health.transit.utils.gpas.psn.GetOrCreatePseudonymForListResponse;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.variables.Variables;
 import org.apache.commons.lang3.StringUtils;
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.*;
 
 import java.nio.charset.StandardCharsets;
@@ -25,40 +24,38 @@ import java.util.logging.Logger;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.*;
 
-public class PseudonymizationImplementation extends AbstractServiceDelegate {
+public class PseudonymizationImplementation implements ServiceTask {
     private static final Logger LOGGER = Logger.getLogger(PseudonymizationImplementation.class.getName());
     private static final String NDJSON_WRAPPER = "{\"resource\":";
     private final FhirContext fhirContext = FhirContext.forR4();
     private GpasManager gpasManager;
     private DmsFhirClientConfig dmsFhirClientConfig;
 
-    public PseudonymizationImplementation(ProcessPluginApi api, GpasManager gpasManager, DmsFhirClientConfig dmsFhirClientConfig) {
-        super(api);
+    public PseudonymizationImplementation(GpasManager gpasManager, DmsFhirClientConfig dmsFhirClientConfig) {
+        super();
         this.gpasManager = gpasManager;
         this.dmsFhirClientConfig = dmsFhirClientConfig;
     }
 
     @Override
-    protected void doExecute(DelegateExecution delegateExecution, Variables variables) throws BpmnError, Exception {
-
-
-        String dizId = (String) delegateExecution.getVariable(ConstantsTransit.CURRENTDIZID);
-        String bundleID = (String) delegateExecution.getVariable(ConstantsTransit.BUNDLEID
+    public void execute(ProcessPluginApi processPluginApi, Variables variables) throws ErrorBoundaryEvent, Exception {
+        String dizId = variables.getString(ConstantsTransit.CURRENTDIZID);
+        String bundleID = variables.getString(ConstantsTransit.BUNDLEID
                 + ConstantsTransit.DIZSEPERATOR
                 + dizId);
-        String binaryID = (String) delegateExecution.getVariable(ConstantsTransit.BINARYID
+        String binaryID = variables.getString(ConstantsTransit.BINARYID
                 + ConstantsTransit.DIZSEPERATOR
                 + dizId);
-        String documentID = (String) delegateExecution.getVariable(ConstantsTransit.DOCUMENTID
+        String documentID = variables.getString(ConstantsTransit.DOCUMENTID
                 + ConstantsTransit.DIZSEPERATOR
                 + dizId);
 
-        Binary binary = (Binary) variables.getResource(BINARY);
-        Bundle bundle = (Bundle) variables.getResource(BUNDLE);
+        Binary binary = variables.getFhirResource(BINARY);
+        Bundle bundle = variables.getFhirResource(BUNDLE);
 
-        String dupIdentifier = (String) delegateExecution.getVariable(ConstantsTransit.DUPIDENTIFIER);
-        boolean hashIDs = (boolean) delegateExecution.getVariable(ConstantsTransit.HASH_IDS);
-        boolean removeIdentifier = (boolean) delegateExecution.getVariable(ConstantsTransit.REMOVE_IDENTIFIER);
+        String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
+        boolean hashIDs = variables.getBoolean(ConstantsTransit.HASH_IDS);
+        boolean removeIdentifier = variables.getBoolean(ConstantsTransit.REMOVE_IDENTIFIER);
 
         LOGGER.log(Level.INFO, "Start Pseudonymization of Data Recieved for Project: "+dupIdentifier);
 //        Downloader downloader = new Downloader(this.dmsFhirClientConfig.getFhirStoreBaseUrl());
@@ -75,7 +72,7 @@ public class PseudonymizationImplementation extends AbstractServiceDelegate {
             bundle.getMeta().setSource("Transit");
 
             //Update Bundle on FHIR-Inbox
-            variables.setResource(BUNDLE, bundle);
+            variables.setFhirResource(BUNDLE, bundle);
         } else {
 
             binaryPseudonymization(binary, dupIdentifier, hashIDs, removeIdentifier);
@@ -84,7 +81,7 @@ public class PseudonymizationImplementation extends AbstractServiceDelegate {
             binary.getMeta().setSource("Transit");
 
             //Update Binary on FHIR-Inbox
-            variables.setResource(BINARY, binary);
+            variables.setFhirResource(BINARY, binary);
         }
 
         LOGGER.log(Level.INFO, "Finished Pseudonymization of Data");
@@ -245,6 +242,5 @@ public class PseudonymizationImplementation extends AbstractServiceDelegate {
             return saltStringList.get(0).getValue();
         }
     }
-
 
 }

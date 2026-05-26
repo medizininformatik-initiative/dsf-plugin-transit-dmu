@@ -29,10 +29,7 @@ public class SendInitializeNewProjectDataSharing extends AbstractTaskMessageSend
 
 	private final FhirClientFactory fhirClientFactory;
 
-	public SendInitializeNewProjectDataSharing(ProcessPluginApi api, FhirClientFactory fhirClientFactory)
-	{
-		super(api);
-		this.fhirClientFactory = fhirClientFactory;
+	public SendInitializeNewProjectDataSharing() {
 	}
 
 	@Override
