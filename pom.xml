@@ -10,8 +10,10 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!--
         <compileSource>17</compileSource>
         <compileTarget>17</compileTarget>
+        -->
 
         <maven.compiler.release>25</maven.compiler.release>
         <dsf.version>2.1.0</dsf.version>

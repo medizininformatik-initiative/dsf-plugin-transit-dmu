@@ -12,7 +12,6 @@ import de.fraunhofer.isst.health.transit.utils.projectfile.enums.EDataUsageProje
 import de.fraunhofer.isst.health.transit.utils.projectfile.helper.MiiFhirComplexClientHelper;
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.MIITask;
 import de.fraunhofer.isst.health.transit.utils.projectfile.status.DataUsageProjectStatus;
-import de.medizininformatik_initiative.processes.common.fhir.client.FhirClient;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.client.dsf.DsfClient;

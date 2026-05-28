@@ -7,8 +7,8 @@ import de.medizininformatik_initiative.processes.common.fhir.client.token.OAuth2
 import de.medizininformatik_initiative.processes.common.fhir.client.token.OAuth2TokenProvider;
 import de.medizininformatik_initiative.processes.common.fhir.client.token.TokenClient;
 import de.medizininformatik_initiative.processes.common.fhir.client.token.TokenProvider;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.documentation.ProcessDocumentation;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.documentation.ProcessDocumentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
