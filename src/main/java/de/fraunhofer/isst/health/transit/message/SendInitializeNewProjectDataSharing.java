@@ -1,44 +1,77 @@
 package de.fraunhofer.isst.health.transit.message;
 
-import ca.uhn.fhir.rest.api.MethodOutcome;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
 import de.fraunhofer.isst.health.transit.variables.Researchers;
-import de.medizininformatik_initiative.processes.common.fhir.client.FhirClientFactory;
+import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractTaskMessageSend;
-import dev.dsf.bpe.v1.constants.CodeSystems;
-import dev.dsf.bpe.v1.constants.NamingSystems;
-import dev.dsf.bpe.v1.variables.Target;
-import dev.dsf.bpe.v1.variables.Targets;
-import dev.dsf.bpe.v1.variables.Variables;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.MessageSendTask;
+import dev.dsf.bpe.v2.activity.task.BusinessKeyStrategies;
+import dev.dsf.bpe.v2.activity.task.TaskSender;
+import dev.dsf.bpe.v2.activity.values.SendTaskValues;
+import dev.dsf.bpe.v2.constants.NamingSystems;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Targets;
+import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class SendInitializeNewProjectDataSharing extends AbstractTaskMessageSend implements InitializingBean
+public class SendInitializeNewProjectDataSharing implements MessageSendTask, InitializingBean
 {
 	private static final Logger logger = LoggerFactory.getLogger(SendInitializeNewProjectDataSharing.class);
 
-	private final FhirClientFactory fhirClientFactory;
-
 	public SendInitializeNewProjectDataSharing() {
+        super();
 	}
+
+    @Override
+    public TaskSender getTaskSender(ProcessPluginApi api, Variables variables,
+                                    SendTaskValues sendTaskValues) {
+        return new RetryTaskSender(api, variables, sendTaskValues,
+                BusinessKeyStrategies.SAME,
+                (target) -> getAdditionalInputParameters(api, variables, sendTaskValues, target));
+    }
+
+    @Override
+    public List<Task.ParameterComponent> getAdditionalInputParameters(ProcessPluginApi api,
+                                                                      Variables variables, SendTaskValues sendTaskValues, Target target) {
+
+        String projectIdentifier = variables
+                .getString(ConstantsTransit.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
+        Task.ParameterComponent projectIdentifierInput = getProjectIdentifierInput(projectIdentifier);
+
+        String contractUrl = variables.getString(ConstantsTransit.BPMN_EXECUTION_VARIABLE_CONTRACT_URL);
+        Task.ParameterComponent contractUrlInput = getContractUrlInput(contractUrl);
+
+        Stream<Task.ParameterComponent> otherInputs = Stream.of(projectIdentifierInput, contractUrlInput);
+
+        List<String> researcherIdentifiers = ((Researchers) variables
+                .getVariable(ConstantsTransit.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS)).getEntries();
+        Stream<Task.ParameterComponent> researcherIdentifierInputs = getResearcherIdentifierInputs(
+                researcherIdentifiers);
+
+        Targets targets = variables.getTargets();
+        Stream<Task.ParameterComponent> dicIdentifierInputs = getDicIdentifierInputs(targets);
+
+        return Stream.of(dicIdentifierInputs, otherInputs, researcherIdentifierInputs).flatMap(Function.identity())
+                .toList();
+    }
+
 
 	@Override
 	public void afterPropertiesSet() throws Exception
 	{
-		super.afterPropertiesSet();
-		Objects.requireNonNull(fhirClientFactory, "fhirClientFactory");
+        //super.afterPropertiesSet();
+		//Objects.requireNonNull(fhirClientFactory, "fhirClientFactory");
 	}
 
+    /*
 	@Override
 	protected void sendTask(DelegateExecution execution, Variables variables, Target target,
 			String instantiatesCanonical, String messageName, String businessKey, String profile,
@@ -83,31 +116,7 @@ public class SendInitializeNewProjectDataSharing extends AbstractTaskMessageSend
 					exception.getMessage());
 		}
 	}
-
-	@Override
-	protected Stream<Task.ParameterComponent> getAdditionalInputParameters(DelegateExecution execution,
-			Variables variables)
-	{
-		String projectIdentifier = variables
-				.getString(ConstantsTransit.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
-		Task.ParameterComponent projectIdentifierInput = getProjectIdentifierInput(projectIdentifier);
-
-		String contractUrl = variables.getString(ConstantsTransit.BPMN_EXECUTION_VARIABLE_CONTRACT_URL);
-		Task.ParameterComponent contractUrlInput = getContractUrlInput(contractUrl);
-
-		Stream<Task.ParameterComponent> otherInputs = Stream.of(projectIdentifierInput, contractUrlInput);
-
-		List<String> researcherIdentifiers = ((Researchers) variables
-				.getVariable(ConstantsTransit.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS)).getEntries();
-		Stream<Task.ParameterComponent> researcherIdentifierInputs = getResearcherIdentifierInputs(
-				researcherIdentifiers);
-
-		Targets targets = variables.getTargets();
-		Stream<Task.ParameterComponent> dicIdentifierInputs = getDicIdentifierInputs(targets);
-
-		return Stream.of(dicIdentifierInputs, otherInputs, researcherIdentifierInputs).reduce(Stream::concat)
-				.orElseThrow(() -> new RuntimeException("Could not concat streams"));
-	}
+     */
 
 	private Task.ParameterComponent getProjectIdentifierInput(String projectIdentifier)
 	{
@@ -163,6 +172,7 @@ public class SendInitializeNewProjectDataSharing extends AbstractTaskMessageSend
 		return dicIdentifierInput;
 	}
 
+    /*
 	private Task createTask(String profile, String instantiatesCanonical, String messageName, String businessKey)
 	{
 		Task task = new Task();
@@ -186,4 +196,5 @@ public class SendInitializeNewProjectDataSharing extends AbstractTaskMessageSend
 
 		return task;
 	}
+     */
 }

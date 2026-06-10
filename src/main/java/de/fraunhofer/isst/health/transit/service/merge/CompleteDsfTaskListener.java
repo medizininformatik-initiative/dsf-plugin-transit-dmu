@@ -2,8 +2,10 @@ package de.fraunhofer.isst.health.transit.service.merge;
 
 import ca.uhn.fhir.context.FhirContext;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
 import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
@@ -31,7 +33,9 @@ public class CompleteDsfTaskListener implements ServiceTask {
 
         LOGGER.log(Level.INFO, "sendQuestionnaireResponse start");
 
-        DsfClient dsfClient = api.getDsfClientProvider().getLocal();
+        DsfClient dsfClient = (DsfClient) api.getDsfClientProvider().getLocal()
+                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+                        DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
         dsfClient.update(questionnaireResponse);
         LOGGER.log(Level.INFO, "sendQuestionnaireResponse end");
     }

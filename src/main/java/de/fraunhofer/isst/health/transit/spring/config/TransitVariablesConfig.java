@@ -3,7 +3,7 @@ package de.fraunhofer.isst.health.transit.spring.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.isst.health.transit.variables.ResearchersSerializer;
 import de.fraunhofer.isst.health.transit.variables.TasksSerializer;
-import dev.dsf.bpe.v1.documentation.ProcessDocumentation;
+import dev.dsf.bpe.v2.documentation.ProcessDocumentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

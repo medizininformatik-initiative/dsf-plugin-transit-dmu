@@ -1,13 +1,12 @@
 package de.fraunhofer.isst.health.transit.service.trigger;
 
-import ca.uhn.fhir.rest.api.SearchStyleEnum;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ca.uhn.fhir.rest.gclient.StringClientParam;
+import de.fraunhofer.isst.health.transit.spring.config.DmsFhirClientConfig;
 import de.fraunhofer.isst.health.transit.variables.Tasks;
 import de.fraunhofer.isst.health.transit.variables.TasksValues;
-import de.medizininformatik_initiative.processes.common.fhir.client.FhirClientFactory;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
 import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
@@ -26,17 +25,29 @@ import static de.fraunhofer.isst.health.transit.ConstantsTransit.*;
 public class CheckNewData implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(CheckNewData.class);
-	FhirClientFactory fhirClientFactory;
+    private DmsFhirClientConfig dmsFhirClientConfig;
 
-    public CheckNewData() {
+    public CheckNewData(DmsFhirClientConfig dmsFhirClientConfig) {
         super();
+        this.dmsFhirClientConfig = dmsFhirClientConfig;
 	}
 
     @Override
     public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         String from = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);
-        IGenericClient client = fhirClientFactory.getFhirClient().getGenericFhirClient();
+        //IGenericClient client = fhirClientFactory.getFhirClient().getGenericFhirClient();
 
+        DsfClient newClient = (DsfClient) api.getDsfClientProvider().getByEndpointUrl(dmsFhirClientConfig.getFhirStoreBaseUrl())
+                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+                    DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+
+        Map<String, List<String>> searchParameters = new HashMap<>();
+        searchParameters.put("status", List.of("current"));
+        searchParameters.put("_lastUpdated", List.of("ge" + from));
+
+        Bundle result = newClient.search(DocumentReference.class, searchParameters);
+
+        /*
         Bundle result = client
                 .search()
                 .forResource(DocumentReference.class)
@@ -45,8 +56,12 @@ public class CheckNewData implements ServiceTask
                 .returnBundle(Bundle.class)
                 .usingStyle(SearchStyleEnum.POST)
                 .execute();
+         */
 
-        DsfClient dsfClient = api.getDsfClientProvider().getLocal();
+        DsfClient dsfClient = (DsfClient) api.getDsfClientProvider().getLocal()
+                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+                    DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+
         Map<String, List<String>> parameters = new HashMap<>();
         parameters.put("_profile", List.of("http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing"));
         parameters.put("status", List.of("in-progress"));

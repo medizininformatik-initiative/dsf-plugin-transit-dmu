@@ -1,15 +1,6 @@
 package de.fraunhofer.isst.health.transit.spring.config;
 
-import ca.uhn.fhir.context.FhirContext;
-import de.medizininformatik_initiative.processes.common.fhir.client.FhirClientFactory;
-import de.medizininformatik_initiative.processes.common.fhir.client.logging.DataLogger;
-import de.medizininformatik_initiative.processes.common.fhir.client.token.OAuth2TokenClient;
-import de.medizininformatik_initiative.processes.common.fhir.client.token.OAuth2TokenProvider;
-import de.medizininformatik_initiative.processes.common.fhir.client.token.TokenClient;
-import de.medizininformatik_initiative.processes.common.fhir.client.token.TokenProvider;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.documentation.ProcessDocumentation;
-import org.springframework.beans.factory.annotation.Autowired;
+import dev.dsf.bpe.v2.documentation.ProcessDocumentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,11 +11,11 @@ import java.nio.file.Paths;
 @Configuration
 public class DmsProjectFileFhirClientConfig
 {
-	@Autowired
-	private FhirContext fhirContext;
+	//@Autowired
+	//private FhirContext fhirContext;
 
-	@Autowired
-	private ProcessPluginApi api;
+	//@Autowired
+	//private ProcessPluginApi api;
 
 	@ProcessDocumentation(required = true, processNames = {
 			"datamanagementuniteu_transit" }, description = "The base address of the DMS FHIR server to read/store FHIR resources", example = "http://foo.bar/fhir")
@@ -162,6 +153,7 @@ public class DmsProjectFileFhirClientConfig
 	private String endpointSystem = "http://datamanagementunit.eu/fhir/Endpoint";
 	private String groupSystem = "http://datamanagementunit.eu/fhir/Group";
 
+    /*
 	public FhirClientFactory fhirClientFactory()
 	{
 		Path trustStorePath = checkExists(fhirStoreTrustStore);
@@ -184,6 +176,7 @@ public class DmsProjectFileFhirClientConfig
 				fhirStoreUsername, fhirStorePassword, fhirStoreBearerToken, tokenProvider(), proxyUrl, proxyUsername,
 				proxyPassword, fhirStoreHapiClientVerbose, fhirContext, localIdentifierValue, dataLogger());
 	}
+
 
 	public TokenProvider tokenProvider()
 	{
@@ -210,10 +203,12 @@ public class DmsProjectFileFhirClientConfig
 				proxyUsername, proxyPassword);
 	}
 
+
 	public DataLogger dataLogger()
 	{
 		return new DataLogger(fhirDataLoggingEnabled, fhirContext);
 	}
+    */
 
 	private Path checkExists(String file)
 	{

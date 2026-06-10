@@ -3,6 +3,7 @@ package de.fraunhofer.isst.health.transit.service.merge;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
@@ -65,7 +66,9 @@ public class GetAndSendStoreUrlListener implements ServiceTask {
     private QuestionnaireResponse getQuestionnaireResponse(ProcessPluginApi api, String qsId) {
         LOGGER.log(Level.INFO, "QuestionnaireResponse ID: " + qsId);
 
-        DsfClient dsfClient = api.getDsfClientProvider().getLocal();
+        DsfClient dsfClient = (DsfClient) api.getDsfClientProvider().getLocal()
+                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+                        DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
 
         Resource object =
                 dsfClient.read("QuestionnaireResponse", qsId);

@@ -1,23 +1,24 @@
 package de.fraunhofer.isst.health.transit.message;
 
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractTaskMessageSend;
-import dev.dsf.bpe.v1.variables.Variables;
-import dev.dsf.fhir.client.FhirWebserviceClient;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
+import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.MessageSendTask;
+import dev.dsf.bpe.v2.activity.task.BusinessKeyStrategies;
+import dev.dsf.bpe.v2.activity.task.TaskSender;
+import dev.dsf.bpe.v2.activity.values.SendTaskValues;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.BPMN_EXECUTION_PROJECT;
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.BPMN_EXECUTION_PROJECTS;
 
-public class SendNewProject extends AbstractTaskMessageSend
+public class SendNewProject implements MessageSendTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(SendNewProject.class);
 
@@ -26,29 +27,36 @@ public class SendNewProject extends AbstractTaskMessageSend
 		super();
 	}
 
-	@Override
-	protected Stream<Task.ParameterComponent> getAdditionalInputParameters(DelegateExecution execution,
-			Variables variables)
-	{
+    @Override
+    public TaskSender getTaskSender(ProcessPluginApi api, Variables variables,
+                                    SendTaskValues sendTaskValues) {
+        return new RetryTaskSender(api, variables, sendTaskValues,
+                BusinessKeyStrategies.SAME,
+                (target) -> getAdditionalInputParameters(api, variables, sendTaskValues, target));
+    }
 
-		String projectId =	(String) variables.getVariable(BPMN_EXECUTION_PROJECT);
-		List<Task> tasks = variables.getResourceList(BPMN_EXECUTION_PROJECTS);
+    @Override
+    public List<Task.ParameterComponent> getAdditionalInputParameters(ProcessPluginApi api,
+                                                                      Variables variables, SendTaskValues sendTaskValues, Target target) {
 
-		Optional<Task> foundTask = tasks.stream()
-				.filter(task -> task.getIdElement().getIdPart().equals(projectId))
-				.findFirst();
+        String projectId =	variables.getString(BPMN_EXECUTION_PROJECT);
+        List<Task> tasks = variables.getFhirResourceList(BPMN_EXECUTION_PROJECTS);
 
-		return foundTask
-				.map(task -> task.getInput().stream()
-						.filter(input -> {
-							String code = input.getType().getCodingFirstRep().getCode();
-							return !("message-name".equals(code) || "business-key".equals(code));
-						})
-				)
-				.orElseGet(Stream::empty);
+        Optional<Task> foundTask = tasks.stream()
+                .filter(task -> task.getIdElement().getIdPart().equals(projectId))
+                .findFirst();
 
-	}
+        return foundTask
+                .map(task -> (Task.ParameterComponent) task.getInput().stream()
+                        .filter(input -> {
+                            String code = input.getType().getCodingFirstRep().getCode();
+                            return !("message-name".equals(code) || "business-key".equals(code));
+                        })
+                )
+                .stream().toList();
+    }
 
+    /*
 	@Override
 	protected IdType doSend(FhirWebserviceClient client, Task task)
 	{
@@ -87,5 +95,6 @@ public class SendNewProject extends AbstractTaskMessageSend
 					exception.getMessage());
 		}
 	}
+     */
 
 }

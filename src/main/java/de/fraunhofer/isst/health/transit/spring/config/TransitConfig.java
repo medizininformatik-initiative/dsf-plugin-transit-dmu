@@ -193,7 +193,7 @@ public class TransitConfig
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public CheckNewData checkNewData()
     {
-        return new CheckNewData();
+        return new CheckNewData(dmsFhirClientConfig);
     }
 
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
