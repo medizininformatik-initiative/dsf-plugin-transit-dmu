@@ -5,6 +5,7 @@ import de.fraunhofer.isst.health.transit.spring.config.DmsProjectFileFhirClientC
 import de.fraunhofer.isst.health.transit.utils.projectfile.enums.ESearchableResource;
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.DataUsageProject;
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.HTTPResponseObject;
+import dev.dsf.bpe.v2.ProcessPluginApi;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.ResearchStudy;
@@ -26,8 +27,8 @@ public class MiiFhirComplexClientHelper extends MiiFhirSimpleClientHelper {
      * @param projectIdentifier the identifier of the dup
      * @param dmsProjectFileFhirClientConfig the configuration of the server
      */
-    public MiiFhirComplexClientHelper(String projectIdentifier, DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig) {
-        super(dmsProjectFileFhirClientConfig);
+    public MiiFhirComplexClientHelper(ProcessPluginApi api, String projectIdentifier, DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig) {
+        super(api, dmsProjectFileFhirClientConfig);
         HTTPResponseObject responseObject = searchByIdentifier(projectIdentifier, ESearchableResource.RESEARCH_STUDY);
         if (responseObject.hasResource()) {
             dup = new DataUsageProject((ResearchStudy) responseObject.getResource(), this);

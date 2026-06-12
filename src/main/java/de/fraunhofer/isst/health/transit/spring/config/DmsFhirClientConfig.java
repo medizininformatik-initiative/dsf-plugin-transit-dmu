@@ -1,30 +1,17 @@
 package de.fraunhofer.isst.health.transit.spring.config;
 
-import ca.uhn.fhir.context.FhirContext;
-import de.medizininformatik_initiative.processes.common.fhir.client.FhirClientFactory;
-import de.medizininformatik_initiative.processes.common.fhir.client.logging.DataLogger;
-import de.medizininformatik_initiative.processes.common.fhir.client.token.OAuth2TokenClient;
-import de.medizininformatik_initiative.processes.common.fhir.client.token.OAuth2TokenProvider;
-import de.medizininformatik_initiative.processes.common.fhir.client.token.TokenClient;
-import de.medizininformatik_initiative.processes.common.fhir.client.token.TokenProvider;
-import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.documentation.ProcessDocumentation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Configuration
 public class DmsFhirClientConfig
 {
-	@Autowired
-	private FhirContext fhirContext;
+	//@Autowired
+	//private FhirContext fhirContext;
 
-	@Autowired
-	private ProcessPluginApi api;
+	//@Autowired
+	//private ProcessPluginApi api;
 
 	@ProcessDocumentation(required = true, processNames = {
 			"medizininformatik-initiativede_mergeDataSharing" }, description = "The base address of the DMS FHIR server to read/store FHIR resources", example = "http://foo.bar/fhir")
@@ -155,6 +142,7 @@ public class DmsFhirClientConfig
 	@Value("${dev.dsf.bpe.fhir.server.organization.identifier.value}")
 	private String localIdentifierValue;
 
+    /*
 	public FhirClientFactory fhirClientFactory()
 	{
 		Path trustStorePath = checkExists(fhirStoreTrustStore);
@@ -222,13 +210,15 @@ public class DmsFhirClientConfig
 			return path;
 		}
 	}
-	public String getFhirStoreBaseUrl()
-	{
-		return fhirStoreBaseUrl;
-	}
+     */
 
-	public void setFhirStoreBaseUrl(String fhirStoreBaseUrl)
-	{
-		this.fhirStoreBaseUrl = fhirStoreBaseUrl;
-	}
+    public String getFhirStoreBaseUrl()
+    {
+        return fhirStoreBaseUrl;
+    }
+
+    public void setFhirStoreBaseUrl(String fhirStoreBaseUrl)
+    {
+        this.fhirStoreBaseUrl = fhirStoreBaseUrl;
+    }
 }

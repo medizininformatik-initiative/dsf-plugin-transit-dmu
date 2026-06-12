@@ -10,14 +10,10 @@ import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
 import org.apache.commons.io.IOUtils;
-import org.bouncycastle.pkcs.PKCSException;
 import org.hl7.fhir.r4.model.Task;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
@@ -45,7 +41,7 @@ public class SendTaskListener implements ServiceTask {
     }
 
     private void requestFHIRStore(ProcessPluginApi api, Variables variables)
-            throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
+            throws IOException {
 
         String taskString = IOUtils.toString(getClass().getResourceAsStream("/fhir/Task/task-create-store.xml"), StandardCharsets.UTF_8);
         String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);

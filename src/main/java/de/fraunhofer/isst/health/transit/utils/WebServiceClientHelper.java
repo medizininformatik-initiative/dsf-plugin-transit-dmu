@@ -14,7 +14,6 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pkcs.PKCSException;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
@@ -45,13 +44,12 @@ public final class WebServiceClientHelper {
     private WebServiceClientHelper() { }
 
     public static Resource getFhirResource(String url) throws CertificateException,
-            IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
+            IOException, KeyStoreException, NoSuchAlgorithmException {
 
         return getFhirResource(url, true);
     }
 
-    public static Resource getFhirResource(String url, boolean withSSLContext) throws CertificateException,
-            IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
+    public static Resource getFhirResource(String url, boolean withSSLContext) {
         Client client;
         ClientBuilder builder = ClientBuilder.newBuilder();
         SSLContext sslContext;
@@ -98,8 +96,7 @@ public final class WebServiceClientHelper {
 
     }
 
-    public static Binary getBinary(String url, boolean withSSLContext) throws CertificateException,
-            IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
+    public static Binary getBinary(String url, boolean withSSLContext) {
 
         LOGGER.info("Started getBinary");
         LOGGER.info("getBinary URL: {}", url);
@@ -143,13 +140,13 @@ public final class WebServiceClientHelper {
     }
 
     public static <T extends Resource> Response postFhirResource(T fhirResource) throws CertificateException,
-            IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
+            IOException, KeyStoreException, NoSuchAlgorithmException {
 
         return postFhirResource(fhirResource, null, false);
     }
 
     public static <T extends Resource> Response postFhirResource(T fhirResource, String url, boolean withoutSSLContext)
-            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
 
         Client client;
         ClientBuilder builder = ClientBuilder.newBuilder();
@@ -236,13 +233,12 @@ public final class WebServiceClientHelper {
                 LOGGER.info("Posted Bundle-Entries");
             }
 
-        } catch (CertificateException | IOException | KeyStoreException | NoSuchAlgorithmException | PKCSException e) {
+        } catch (CertificateException | IOException | KeyStoreException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static Response deleteFhirResource(String url) throws CertificateException,
-            IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
+    public static Response deleteFhirResource(String url) {
         Client client;
         ClientBuilder builder = ClientBuilder.newBuilder();
 
@@ -265,7 +261,7 @@ public final class WebServiceClientHelper {
 
     private static KeyStore createKeyStore(InputStream clientCert, String privateKeyFile, char[] privateKeyPassword,
                                     char[] keyStorePassword)
-            throws IOException, PKCSException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
+            throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
         Path privateKeyPath = Paths.get(privateKeyFile);
 
         if (!Files.isReadable(privateKeyPath)) {

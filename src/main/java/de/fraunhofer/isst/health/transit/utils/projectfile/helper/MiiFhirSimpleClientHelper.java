@@ -8,6 +8,8 @@ import ca.uhn.fhir.rest.client.interceptor.CapturingInterceptor;
 import de.fraunhofer.isst.health.transit.spring.config.DmsProjectFileFhirClientConfig;
 import de.fraunhofer.isst.health.transit.utils.projectfile.enums.ESearchableResource;
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.HTTPResponseObject;
+import dev.dsf.bpe.v2.client.dsf.DsfClient;
+import dev.dsf.bpe.v2.service.DsfClientProvider;
 import org.hl7.fhir.exceptions.FHIRFormatError;
 import org.hl7.fhir.r4.model.*;
 
