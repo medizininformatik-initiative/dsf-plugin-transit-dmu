@@ -1,7 +1,5 @@
 package de.fraunhofer.isst.health.transit.service.trigger;
 
-import de.fraunhofer.isst.health.transit.variables.Tasks;
-import de.fraunhofer.isst.health.transit.variables.TasksValues;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
@@ -56,8 +54,7 @@ public class CheckCloseProject implements ServiceTask
 
             logger.info("Number of process to close: " + taskIds.size());
             variables.setFhirResourceList(BPMN_EXECUTION_CLOSE_PROCESS_LIST, tasks);
-            variables.setVariable(BPMN_EXECUTION_CLOSE_PROCESS_IDS,
-                    TasksValues.create(new Tasks(taskIds)));
+            variables.setStringList(BPMN_EXECUTION_CLOSE_PROCESS_IDS,taskIds);
             variables.setString(BPMN_EXECUTION_CLOSE_PROCESS, "yes");
         }else{
             variables.setString(BPMN_EXECUTION_CLOSE_PROCESS, "no");

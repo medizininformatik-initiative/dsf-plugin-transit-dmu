@@ -1,8 +1,6 @@
 package de.fraunhofer.isst.health.transit.service.trigger;
 
 import de.fraunhofer.isst.health.transit.spring.config.DmsFhirClientConfig;
-import de.fraunhofer.isst.health.transit.variables.Tasks;
-import de.fraunhofer.isst.health.transit.variables.TasksValues;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
@@ -87,8 +85,7 @@ public class CheckNewData implements ServiceTask
             logger.info("Number of new data found: " + taskIds.size());
             variables.setFhirResourceList(BPMN_EXECUTION_DATA_LIST, documentReferences);
             variables.setFhirResourceList(BPMN_EXECUTION_TASK_LIST, tasks);
-            variables.setVariable(BPMN_EXECUTION_NEW_DATA_IDS,
-                    TasksValues.create(new Tasks(taskIds)));
+            variables.setStringList(BPMN_EXECUTION_NEW_DATA_IDS,taskIds);
             variables.setString(BPMN_EXECUTION_NEW_DATA, "yes");
         }else{
             variables.setString(BPMN_EXECUTION_NEW_DATA, "no");

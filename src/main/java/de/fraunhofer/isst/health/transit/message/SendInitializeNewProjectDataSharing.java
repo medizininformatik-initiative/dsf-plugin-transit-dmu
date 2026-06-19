@@ -1,7 +1,6 @@
 package de.fraunhofer.isst.health.transit.message;
 
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
-import de.fraunhofer.isst.health.transit.variables.Researchers;
 import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;

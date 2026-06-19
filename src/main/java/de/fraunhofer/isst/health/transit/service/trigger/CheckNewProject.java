@@ -1,7 +1,5 @@
 package de.fraunhofer.isst.health.transit.service.trigger;
 
-import de.fraunhofer.isst.health.transit.variables.Tasks;
-import de.fraunhofer.isst.health.transit.variables.TasksValues;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
@@ -55,8 +53,7 @@ public class CheckNewProject implements ServiceTask
         if (taskIds != null && !taskIds.isEmpty()){
             logger.info("Number of New Projects: " + taskIds.size());
             variables.setFhirResourceList(BPMN_EXECUTION_PROJECTS, tasks);
-            variables.setVariable(BPMN_EXECUTION_PROJECT_IDS,
-                    TasksValues.create(new Tasks(taskIds)));
+            variables.setStringList(BPMN_EXECUTION_PROJECT_IDS,taskIds);
             variables.setString(BPMN_EXECUTION_NEW_PROJECT, "yes");
         }else{
             variables.setString(BPMN_EXECUTION_NEW_PROJECT, "no");

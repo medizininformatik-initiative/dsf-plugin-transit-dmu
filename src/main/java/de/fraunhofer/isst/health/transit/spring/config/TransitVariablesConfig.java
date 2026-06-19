@@ -1,12 +1,9 @@
 package de.fraunhofer.isst.health.transit.spring.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.isst.health.transit.variables.ResearchersSerializer;
-import de.fraunhofer.isst.health.transit.variables.TasksSerializer;
 import dev.dsf.bpe.v2.documentation.ProcessDocumentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,17 +15,6 @@ public class TransitVariablesConfig
 	@Autowired
 	private ObjectMapper objectMapper;
 
-	@Bean
-	public ResearchersSerializer researchersSerializer()
-	{
-		return new ResearchersSerializer(objectMapper);
-	}
-
-	@Bean
-	public TasksSerializer tasksSerializer()
-	{
-		return new TasksSerializer(objectMapper);
-	}
 
 	@ProcessDocumentation(required = true, processNames = {
 			"datamanagementuniteu_transit" }, description = "The base address of the DMS ProjectFile FHIR server " +
