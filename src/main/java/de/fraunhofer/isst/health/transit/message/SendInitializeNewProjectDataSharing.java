@@ -50,8 +50,8 @@ public class SendInitializeNewProjectDataSharing implements MessageSendTask, Ini
 
         Stream<Task.ParameterComponent> otherInputs = Stream.of(projectIdentifierInput, contractUrlInput);
 
-        List<String> researcherIdentifiers = ((Researchers) variables
-                .getVariable(ConstantsTransit.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS)).getEntries();
+		List<String> researcherIdentifiers = variables
+				.getStringList(ConstantsTransit.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS);
         Stream<Task.ParameterComponent> researcherIdentifierInputs = getResearcherIdentifierInputs(
                 researcherIdentifiers);
 
