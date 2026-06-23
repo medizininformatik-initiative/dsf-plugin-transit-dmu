@@ -44,7 +44,7 @@ public class ReadAndSaveStoreValues implements ServiceTask {
                 url = ((UrlType) param.getValue());
                 variables.setString(ConstantsTransit.FHIRSTOREURL, url.getValue());
                 LOGGER.log(Level.INFO, "Looking up DUP with identifier " + dupIdentifier);
-                MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(dupIdentifier, this.dmsProjectFileFhirClientConfig);
+                MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(processPluginApi, dupIdentifier, this.dmsProjectFileFhirClientConfig);
                 LOGGER.log(Level.INFO, "Looked up DUP with code: " + helper.getLastResponse().getStatusCode());
 
                 MIIEndpoint endpoint = helper.getDataUsageProject().getMiiEndpoint();

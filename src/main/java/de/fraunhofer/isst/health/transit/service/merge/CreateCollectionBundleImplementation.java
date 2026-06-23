@@ -52,7 +52,7 @@ public class CreateCollectionBundleImplementation implements ServiceTask {
 
         variables.setString(ConstantsTransit.QUESTIONNAIREID, questionnareResponseId.orElse(""));
 
-        String collectionURL = createCollectionBundle(dupIdentifier, fhirStoreUrl, variables);
+        String collectionURL = createCollectionBundle(api, dupIdentifier, fhirStoreUrl, variables);
 
         if ("error".equalsIgnoreCase(collectionURL)) {
             LOGGER.severe("Collection could not be created");
@@ -62,7 +62,7 @@ public class CreateCollectionBundleImplementation implements ServiceTask {
         variables.setString(ConstantsTransit.COLLECTIONURL, collectionURL);
     }
 
-	public String createCollectionBundle(String dupIdentifier, String url, Variables variables) {
+	public String createCollectionBundle(ProcessPluginApi api, String dupIdentifier, String url, Variables variables) {
 		String content;
 		String returnUrl = "error";
 
@@ -81,7 +81,7 @@ public class CreateCollectionBundleImplementation implements ServiceTask {
 
 		try {
 			for (String s : resourceList) {
-				Bundle bundle = (Bundle) WebServiceClientHelper.getFhirResource(url + s, false);
+				Bundle bundle = (Bundle) WebServiceClientHelper.getFhirResource(url + s);
 				assert bundle != null;
 
 				List<Bundle.BundleLinkComponent> link = bundle.getLink().stream()
@@ -94,8 +94,7 @@ public class CreateCollectionBundleImplementation implements ServiceTask {
 					while (!link.isEmpty()) {
 						StoreUtils.mergeBundle(bundle, collectionBundle);
 						bundle = (Bundle) WebServiceClientHelper.getFhirResource(
-								link.get(0).getUrl(),
-								false);
+								link.get(0).getUrl());
 
 						assert bundle != null;
 						link = bundle.getLink().stream()
@@ -121,7 +120,7 @@ public class CreateCollectionBundleImplementation implements ServiceTask {
 			//    LOGGER.warning("Created CollectionBundle is empty!");
 			//}
 
-			MiiFhirComplexClientHelper miiFhirClientHelper = new MiiFhirComplexClientHelper(dupIdentifier,  dmsProjectFileFhirClientConfig);
+			MiiFhirComplexClientHelper miiFhirClientHelper = new MiiFhirComplexClientHelper(api, dupIdentifier,  dmsProjectFileFhirClientConfig);
 			ArrayList<MIIPerson> scientists = miiFhirClientHelper.getDataUsageProject().getPersonGroup().getResearcher();
 
 			//Create DB-Entries for Access-Control of File

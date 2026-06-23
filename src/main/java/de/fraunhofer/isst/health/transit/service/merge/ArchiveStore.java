@@ -118,7 +118,7 @@ public class ArchiveStore implements ServiceTask {
                                 + ". Deletion of FHIR-Store can proceed automatically.");
                         variables.setBoolean(ConstantsTransit.ISARCHIVED, true);
                         //Update Project File metadata with archive store URL
-                        updateProjectFile(dupIdentifier, nginxUrl);
+                        updateProjectFile(api, dupIdentifier, nginxUrl);
                     }
                     response.close();
                     availableReq.close();
@@ -179,10 +179,10 @@ public class ArchiveStore implements ServiceTask {
         repositoryManagement.close();
     }
 
-    private void updateProjectFile(String dupIdentifier, String archiveUrl) {
+    private void updateProjectFile(ProcessPluginApi api, String dupIdentifier, String archiveUrl) {
 
         LOGGER.log(Level.INFO, "Looking up DUP with identifier " + dupIdentifier);
-        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(dupIdentifier, dmsProjectFileFhirClientConfig);
+        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(api, dupIdentifier, dmsProjectFileFhirClientConfig);
         LOGGER.log(Level.INFO, "Looked up DUP with code: " + helper.getLastResponse().getStatusCode());
 
         DataUsageProject dataUsageProject = helper.getDataUsageProject();

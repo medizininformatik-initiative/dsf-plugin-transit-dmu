@@ -133,7 +133,7 @@ public class InsertDataSetImplementation implements ServiceTask {
         WebServiceClientHelper.postToContainer(insertDataObject);
 
         InboxManager inboxManager = new InboxManager();
-        StatusLogger statusLogger = new StatusLogger(this.dmsProjectFileFhirClientConfig);
+        StatusLogger statusLogger = new StatusLogger(api, this.dmsProjectFileFhirClientConfig);
         String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
 
         statusLogger.logNewStatus(dupIdentifier,

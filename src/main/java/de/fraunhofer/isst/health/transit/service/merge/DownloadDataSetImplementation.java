@@ -98,7 +98,7 @@ public class DownloadDataSetImplementation implements ServiceTask {
             variables.setFhirResource(DOCUMENT_REFERENCE, documentReference);
         }
 
-        uploadBundleTaskToProjectFile(variables);
+        uploadBundleTaskToProjectFile(api, variables);
     }
 
     private void setVariables(ProcessPluginApi api, Variables variables) {
@@ -151,7 +151,7 @@ public class DownloadDataSetImplementation implements ServiceTask {
      *
      * @param variables the current variables
      */
-    public void uploadBundleTaskToProjectFile(Variables variables) {
+    public void uploadBundleTaskToProjectFile(ProcessPluginApi api, Variables variables) {
         LOGGER.log(Level.INFO, "Starting update of projectfile");
 
         LOGGER.log(Level.INFO, "Storing receiveDataSet Task with businessKey: "
@@ -163,7 +163,7 @@ public class DownloadDataSetImplementation implements ServiceTask {
                 + variables.getVariableLocal(ConstantsTransit.CURRENTDIZID);
 
         String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
-        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(dupIdentifier, this.dmsProjectFileFhirClientConfig);
+        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(api, dupIdentifier, this.dmsProjectFileFhirClientConfig);
 
         MIITask miiTask = new MIITask(this.dmsProjectFileFhirClientConfig);
         miiTask.setDsfId(key);

@@ -30,7 +30,7 @@ public class CompleteProjectFileImplementation implements ServiceTask {
 
         String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
 
-        MiiFhirComplexClientHelper fhirClient = new MiiFhirComplexClientHelper(dupIdentifier, dmsProjectFileFhirClientConfig);
+        MiiFhirComplexClientHelper fhirClient = new MiiFhirComplexClientHelper(api, dupIdentifier, dmsProjectFileFhirClientConfig);
 
         fhirClient.getDataUsageProject().setStatus(ResearchStudy.ResearchStudyStatus.COMPLETED);
 

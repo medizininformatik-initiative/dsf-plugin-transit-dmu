@@ -6,6 +6,7 @@ import de.fraunhofer.isst.health.transit.utils.projectfile.helper.MiiFhirComplex
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.DataUsageProject;
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.MIITask;
 import de.fraunhofer.isst.health.transit.utils.projectfile.status.DataUsageProjectStatus;
+import dev.dsf.bpe.v2.ProcessPluginApi;
 import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Task;
@@ -18,13 +19,16 @@ import java.util.logging.Logger;
 public class StatusLogger {
     private static final Logger LOGGER = Logger.getLogger(StatusLogger.class.getName());
     private DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig;
+    private ProcessPluginApi api;
 
-    public StatusLogger( DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig) {
+    public StatusLogger(ProcessPluginApi api, DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig) {
         this.dmsProjectFileFhirClientConfig = dmsProjectFileFhirClientConfig;
+        this.api = api;
     }
+
     public void logNewStatus(String dupIdentifier, String taskIdentifier, boolean success) {
 
-        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(dupIdentifier, this.dmsProjectFileFhirClientConfig);
+        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(api, dupIdentifier, this.dmsProjectFileFhirClientConfig);
         DataUsageProject dataUsageProject = helper.getDataUsageProject();
 
         for (MIITask miiTask: dataUsageProject.getTasks()) {

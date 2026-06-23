@@ -80,7 +80,7 @@ public class CreateProjectFileListener implements ServiceTask {
         variables.setBoolean(ConstantsTransit.REMOVE_IDENTIFIER, true);
 
         LOGGER.log(Level.INFO, "Looking up DUP with identifier " + fileData.getDupIdentifier());
-        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(fileData.getDupIdentifier(), this.dmsProjectFileFhirClientConfig);
+        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(api, fileData.getDupIdentifier(), this.dmsProjectFileFhirClientConfig);
         LOGGER.log(Level.INFO, "Looked up DUP with code: " + helper.getLastResponse().getStatusCode());
 
         MIITask miiTask = new MIITask(new Task(), dmsProjectFileFhirClientConfig);
