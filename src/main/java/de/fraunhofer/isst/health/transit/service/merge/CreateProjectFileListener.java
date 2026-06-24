@@ -17,44 +17,55 @@ import de.fraunhofer.isst.health.transit.utils.projectfile.helper.MiiFhirComplex
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.*;
 import de.fraunhofer.isst.health.transit.utils.projectfile.status.DataUsageProjectStatus;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.constants.NamingSystems;
-import dev.dsf.bpe.v1.variables.Target;
-import dev.dsf.bpe.v1.variables.Targets;
-import dev.dsf.bpe.v1.variables.Variables;
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.constants.CodeSystems;
+import dev.dsf.bpe.v2.constants.NamingSystems;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.service.TaskHelper;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Targets;
+import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.*;
 
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.*;
 
-public class CreateProjectFileListener extends AbstractServiceDelegate {
+public class CreateProjectFileListener implements ServiceTask {
     private static final Logger LOGGER = Logger.getLogger(CreateProjectFileListener.class.getName());
     private GpasManager gpasManager;
     private TransitVariablesConfig transitVariablesConfig;
     private DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig;
 
-    public CreateProjectFileListener(ProcessPluginApi api, GpasManager gpasManager, TransitVariablesConfig transitVariablesConfig,
+    public CreateProjectFileListener(GpasManager gpasManager, TransitVariablesConfig transitVariablesConfig,
                                      DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig) {
-        super(api);
+        super();
         this.gpasManager = gpasManager;
         this.transitVariablesConfig = transitVariablesConfig;
         this.dmsProjectFileFhirClientConfig = dmsProjectFileFhirClientConfig;
     }
 
     @Override
-    protected void doExecute(DelegateExecution delegateExecution, Variables variables) throws BpmnError, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         LOGGER.log(Level.INFO, "Started Camunda Implementation CreateProjectFileListener");
         Task task = variables.getStartTask();
 
         //Get Project Identifier from task
         String projectIdentifier = getProjectIdentifier(task);
         variables.setString(ConstantsTransit.DUPIDENTIFIER, projectIdentifier);
+
+        //Get BusinessKey
+        String bussinessKey = getBussinessKey(task, api);
+        variables.setString(ConstantsTransit.DSF_TASK_DATASHARING_BUSSINESS_KEY, bussinessKey);
+
+        List<String> researcherIdentifiers = getResearcherIdentifiers(api.getTaskHelper(), task);
+        variables.setStringList(ConstantsTransit.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS,
+                researcherIdentifiers);
+
         //DMS Target for Store controller
         variables.setTarget(
                 variables.createTarget(api.getOrganizationProvider().getLocalOrganizationIdentifierValue().get(),
@@ -62,7 +73,7 @@ public class CreateProjectFileListener extends AbstractServiceDelegate {
                         api.getEndpointProvider().getLocalEndpointAddress()));
 
         //list of DIZ
-        List<Target> targetsList = getTargets(task, variables);
+        List<Target> targetsList = getTargets(api, task, variables);
         Targets targets = variables.createTargets(targetsList);
         variables.setTargets(targets);
 
@@ -70,12 +81,12 @@ public class CreateProjectFileListener extends AbstractServiceDelegate {
 
         //TODO Read values from (DSF-)Task-Object (Project Meta-Data)
         //Determines if the IDs and References of FHIR-Resources are being replaced by a hash-value
-        delegateExecution.setVariable(ConstantsTransit.HASH_IDS, true);
+        variables.setBoolean(ConstantsTransit.HASH_IDS, true);
         //Determines if the Identifiers of non-Patient FHIR-Resources are being removed
-        delegateExecution.setVariable(ConstantsTransit.REMOVE_IDENTIFIER, true);
+        variables.setBoolean(ConstantsTransit.REMOVE_IDENTIFIER, true);
 
         LOGGER.log(Level.INFO, "Looking up DUP with identifier " + fileData.getDupIdentifier());
-        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(fileData.getDupIdentifier(), this.dmsProjectFileFhirClientConfig);
+        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(api, fileData.getDupIdentifier(), this.dmsProjectFileFhirClientConfig);
         LOGGER.log(Level.INFO, "Looked up DUP with code: " + helper.getLastResponse().getStatusCode());
 
         MIITask miiTask = new MIITask(new Task(), dmsProjectFileFhirClientConfig);
@@ -136,8 +147,8 @@ public class CreateProjectFileListener extends AbstractServiceDelegate {
 
 
         createDomain(fileData.getDupIdentifier());
-
     }
+
 
     public void createDomain(String dupIdentifier) {
         DomainInDTO domainInDTO = new DomainInDTO();
@@ -159,16 +170,16 @@ public class CreateProjectFileListener extends AbstractServiceDelegate {
         gpasManager.createDomain(domainInDTO);
     }
 
-    private List<Target> getTargets(Task task, Variables variables)
+    private List<Target> getTargets(ProcessPluginApi api, Task task, Variables variables)
     {
         return api.getTaskHelper()
                 .getInputParametersWithExtension(task, CODESYSTEM_DATA_SHARING,
                         CODESYSTEM_DATA_SHARING_VALUE_DIC_CORRELATION_KEY, StringType.class,
                         EXTENSION_URL_DIC_IDENTIFIER)
-                .map(p -> transformDicCorrelationKeyInputToTarget(p, variables)).toList();
+                .map(p -> transformDicCorrelationKeyInputToTarget(api, p, variables)).toList();
     }
 
-    private Target transformDicCorrelationKeyInputToTarget(Task.ParameterComponent input, Variables variables)
+    private Target transformDicCorrelationKeyInputToTarget(ProcessPluginApi api, Task.ParameterComponent input, Variables variables)
     {
         String organizationIdentifier = ((Reference) input
                 .getExtensionByUrl(EXTENSION_URL_DIC_IDENTIFIER).getValue()).getIdentifier()
@@ -196,4 +207,23 @@ public class CreateProjectFileListener extends AbstractServiceDelegate {
                 .map(Identifier::getValue).map(String::trim).findFirst().orElseThrow(() -> new RuntimeException(
                         "No project-identifier present in task with id '" + task.getId() + "'"));
     }
+
+
+    private String getBussinessKey(Task task, ProcessPluginApi api)
+    {
+        return api.getTaskHelper()
+                .getFirstInputParameterValue(task, CodeSystems.BpmnMessage.businessKey(), StringType.class)
+                .orElseThrow(() -> new RuntimeException("Business Key is missing")).getValue();
+    }
+
+    private List<String> getResearcherIdentifiers(TaskHelper helper, Task task)
+    {
+        return helper
+                .getInputParameters(task, ConstantsTransit.CODESYSTEM_DATA_SHARING,
+                        ConstantsTransit.CODESYSTEM_DATA_SHARING_VALUE_RESEARCHER_IDENTIFIER, Identifier.class)
+                .map(i -> (Identifier) i.getValue())
+                .filter(i -> ConstantsTransit.NAMINGSYSTEM_RESEARCHER_IDENTIFIER.equals(i.getSystem()))
+                .map(Identifier::getValue).collect(Collectors.toList());
+    }
+
 }

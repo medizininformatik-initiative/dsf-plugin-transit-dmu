@@ -1,13 +1,12 @@
 package de.fraunhofer.isst.health.transit.service.trigger;
 
-import de.fraunhofer.isst.health.transit.variables.Tasks;
-import de.fraunhofer.isst.health.transit.variables.TasksValues;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
-import dev.dsf.fhir.client.FhirWebserviceClient;
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
+import dev.dsf.bpe.v2.client.dsf.DsfClient;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
@@ -19,49 +18,46 @@ import java.util.Map;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.*;
 
-public class CheckNewProject extends AbstractServiceDelegate
+public class CheckNewProject implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(CheckNewProject.class);
 
-	public CheckNewProject(ProcessPluginApi api)
-	{
-		super(api);
+	public CheckNewProject() {
+        super();
 	}
 
-	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables) throws BpmnError, Exception
-	{
+    @Override
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+        String from = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);
 
-		String from = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);
+        DsfClient dsfClient = (DsfClient) api.getDsfClientProvider().getLocal()
+                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+                    DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
 
-		FhirWebserviceClient fhirWebserviceClient = api.getFhirWebserviceClientProvider().getLocalWebserviceClient();
-		Map<String, List<String>> parameters = new HashMap<>();
-		parameters.put("_profile", List.of("http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing"));
-		parameters.put("status", List.of("in-progress"));
-		parameters.put("_lastUpdated", List.of("ge" + from));
-		Bundle result = fhirWebserviceClient.search(Task.class, parameters);
+        Map<String, List<String>> parameters = new HashMap<>();
+        parameters.put("_profile", List.of("http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing"));
+        parameters.put("status", List.of("in-progress"));
+        parameters.put("_lastUpdated", List.of("ge" + from));
+        Bundle result = dsfClient.search(Task.class, parameters);
 
-		List<Task> tasks = result.getEntry().stream()
-				.filter(entry -> entry.getResource() instanceof Task)
-				.map(entry -> (Task) entry.getResource())
-				.toList();
-		// Extract the Task from the Bundle's entry
-		List<String> taskIds = result.getEntry().stream()
-				.filter(entry -> entry.getResource() instanceof Task)
-				.map(entry -> entry.getResource().getIdElement().getIdPart())
-				.toList();
+        List<Task> tasks = result.getEntry().stream()
+                .filter(entry -> entry.getResource() instanceof Task)
+                .map(entry -> (Task) entry.getResource())
+                .toList();
+        // Extract the Task from the Bundle's entry
+        List<String> taskIds = result.getEntry().stream()
+                .filter(entry -> entry.getResource() instanceof Task)
+                .map(entry -> entry.getResource().getIdElement().getIdPart())
+                .toList();
 
-		if (taskIds != null && !taskIds.isEmpty()){
-			logger.info("Number of New Projects: " + taskIds.size());
-			variables.setResourceList(BPMN_EXECUTION_PROJECTS, tasks);
-			variables.setVariable(BPMN_EXECUTION_PROJECT_IDS,
-					TasksValues.create(new Tasks(taskIds)));
-			variables.setString(BPMN_EXECUTION_NEW_PROJECT, "yes");
-		}else{
-			variables.setString(BPMN_EXECUTION_NEW_PROJECT, "no");
-		}
-
-
-	}
+        if (taskIds != null && !taskIds.isEmpty()){
+            logger.info("Number of New Projects: " + taskIds.size());
+            variables.setFhirResourceList(BPMN_EXECUTION_PROJECTS, tasks);
+            variables.setStringList(BPMN_EXECUTION_PROJECT_IDS,taskIds);
+            variables.setString(BPMN_EXECUTION_NEW_PROJECT, "yes");
+        }else{
+            variables.setString(BPMN_EXECUTION_NEW_PROJECT, "no");
+        }
+    }
 
 }

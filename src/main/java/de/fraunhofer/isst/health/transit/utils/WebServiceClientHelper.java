@@ -4,17 +4,11 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.api.Constants;
 import de.fraunhofer.isst.health.transit.models.InsertDataObject;
-import de.rwh.utils.crypto.CertificateHelper;
-import de.rwh.utils.crypto.io.CertificateReader;
-import de.rwh.utils.crypto.io.PemIo;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pkcs.PKCSException;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
@@ -22,39 +16,22 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
 public final class WebServiceClientHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebServiceClientHelper.class);
-    private static final BouncyCastleProvider PROVIDER = new BouncyCastleProvider();
     private static final FhirContext FHIR_CONTEXT = FhirContext.forR4();
     private static final int TIMEOUT_S = 180;
 
     private WebServiceClientHelper() { }
 
-    public static Resource getFhirResource(String url) throws CertificateException,
-            IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
-
-        return getFhirResource(url, true);
-    }
-
-    public static Resource getFhirResource(String url, boolean withSSLContext) throws CertificateException,
-            IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
+    public static Resource getFhirResource(String url) {
         Client client;
         ClientBuilder builder = ClientBuilder.newBuilder();
-        SSLContext sslContext;
 
         builder = builder.readTimeout(TIMEOUT_S, TimeUnit.SECONDS).connectTimeout(TIMEOUT_S,
                 TimeUnit.SECONDS);
@@ -98,58 +75,8 @@ public final class WebServiceClientHelper {
 
     }
 
-    public static Binary getBinary(String url, boolean withSSLContext) throws CertificateException,
-            IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
-
-        LOGGER.info("Started getBinary");
-        LOGGER.info("getBinary URL: {}", url);
-
-        Client client;
-        ClientBuilder builder = ClientBuilder.newBuilder();
-        SSLContext sslContext;
-
-        builder = builder.readTimeout(TIMEOUT_S, TimeUnit.SECONDS).connectTimeout(TIMEOUT_S,
-                TimeUnit.SECONDS);
-
-        client = builder.build();
-
-        WebTarget target = client.target(url);
-
-        Response response = target.request()
-                .header(Constants.HEADER_PREFER, "return=minimal")
-                //.accept(Constants.CT_FHIR_XML_NEW)
-                .accept("application/xml")
-                .get();
-
-        LOGGER.info("Get Binary Response: " + response.getStatus());
-
-        if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-            String jsonString = response.readEntity(String.class);
-
-            FhirContext ctx = FhirContext.forR4();
-            IParser parser = ctx.newXmlParser();
-
-            Binary binary = parser.parseResource(Binary.class, jsonString);
-
-            client.close();
-
-            return binary;
-        } else {
-            client.close();
-
-            return null;
-        }
-
-    }
-
-    public static <T extends Resource> Response postFhirResource(T fhirResource) throws CertificateException,
-            IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
-
-        return postFhirResource(fhirResource, null, false);
-    }
-
     public static <T extends Resource> Response postFhirResource(T fhirResource, String url, boolean withoutSSLContext)
-            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
+            throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
 
         Client client;
         ClientBuilder builder = ClientBuilder.newBuilder();
@@ -236,61 +163,9 @@ public final class WebServiceClientHelper {
                 LOGGER.info("Posted Bundle-Entries");
             }
 
-        } catch (CertificateException | IOException | KeyStoreException | NoSuchAlgorithmException | PKCSException e) {
+        } catch (CertificateException | IOException | KeyStoreException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public static Response deleteFhirResource(String url) throws CertificateException,
-            IOException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
-        Client client;
-        ClientBuilder builder = ClientBuilder.newBuilder();
-
-        builder = builder.readTimeout(TIMEOUT_S, TimeUnit.SECONDS).connectTimeout(TIMEOUT_S,
-                TimeUnit.SECONDS);
-
-        client = builder.build();
-
-        WebTarget target = client.target(url);
-
-        Response response = target.request()
-                .header(Constants.HEADER_PREFER, "return=minimal")
-                .accept(Constants.CT_FHIR_JSON_NEW)
-                .delete();
-
-        client.close();
-
-        return response;
-    }
-
-    private static KeyStore createKeyStore(InputStream clientCert, String privateKeyFile, char[] privateKeyPassword,
-                                    char[] keyStorePassword)
-            throws IOException, PKCSException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
-        Path privateKeyPath = Paths.get(privateKeyFile);
-
-        if (!Files.isReadable(privateKeyPath)) {
-            throw new IOException("Private key file '" + privateKeyPath + "' not readable");
-        }
-
-        X509Certificate certificate = PemIo.readX509CertificateFromPem(IOUtils.toString(clientCert, StandardCharsets.UTF_8));
-        PrivateKey privateKey = PemIo.readPrivateKeyFromPem(PROVIDER, privateKeyPath, privateKeyPassword);
-
-        String subjectCommonName = CertificateHelper.getSubjectCommonName(certificate);
-        clientCert.close();
-
-        return CertificateHelper.toJksKeyStore(privateKey, new Certificate[]{certificate}, subjectCommonName,
-                keyStorePassword);
-    }
-
-    private static KeyStore createTrustStore(InputStream testCaCert)
-            throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
-
-        return CertificateReader.allFromCer(testCaCert);
-    }
-
-
-    public static FhirContext getFhirContext() {
-        return FHIR_CONTEXT;
     }
 
 }

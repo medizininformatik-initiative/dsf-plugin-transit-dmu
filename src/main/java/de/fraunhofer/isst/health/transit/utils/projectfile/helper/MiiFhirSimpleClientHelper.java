@@ -8,6 +8,9 @@ import ca.uhn.fhir.rest.client.interceptor.CapturingInterceptor;
 import de.fraunhofer.isst.health.transit.spring.config.DmsProjectFileFhirClientConfig;
 import de.fraunhofer.isst.health.transit.utils.projectfile.enums.ESearchableResource;
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.HTTPResponseObject;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.client.dsf.DsfClient;
+import dev.dsf.bpe.v2.service.DsfClientProvider;
 import org.hl7.fhir.exceptions.FHIRFormatError;
 import org.hl7.fhir.r4.model.*;
 
@@ -26,15 +29,17 @@ public class MiiFhirSimpleClientHelper {
      * This will create a new general MiiFhirClientHelper that can be used to communicate with the server
      * @param config the configuration of the server
      */
-    public MiiFhirSimpleClientHelper(DmsProjectFileFhirClientConfig config) {
+    public MiiFhirSimpleClientHelper(ProcessPluginApi api, DmsProjectFileFhirClientConfig config) {
         this.config = config;
 //        FhirContext context = FhirContext.forR4();
 //        if (config.getTimeOut() != 0) {
 //            context.getRestfulClientFactory().setSocketTimeout(config.getTimeOut());
 //        }
 
-		this.fhirClient = config.fhirClientFactory().getFhirClient().getGenericFhirClient();
+        this.fhirClient = (IGenericClient) api.getDsfClientProvider().getByEndpointUrl(config.getFhirStoreBaseUrl());
+        //this.fhirClient = config.fhirClientFactory().getFhirClient().getGenericFhirClient();
         //this.fhirClient = context.newRestfulGenericClient(config.getServerUrl());
+
         capturingInterceptor = new CapturingInterceptor();
         fhirClient.registerInterceptor(capturingInterceptor);
     }

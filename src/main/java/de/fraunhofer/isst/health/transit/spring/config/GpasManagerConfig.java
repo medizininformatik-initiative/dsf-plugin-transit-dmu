@@ -3,7 +3,7 @@ package de.fraunhofer.isst.health.transit.spring.config;
 import de.fraunhofer.isst.health.transit.utils.gpas.GpasManager;
 import de.fraunhofer.isst.health.transit.utils.gpas.domain.DomainManagerBeanService;
 import de.fraunhofer.isst.health.transit.utils.gpas.psn.PSNManagerBeanService;
-import dev.dsf.bpe.v1.documentation.ProcessDocumentation;
+import dev.dsf.bpe.v2.documentation.ProcessDocumentation;
 import org.apache.cxf.bus.spring.SpringBus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

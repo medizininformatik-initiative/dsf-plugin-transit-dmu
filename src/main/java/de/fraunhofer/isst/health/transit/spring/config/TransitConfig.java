@@ -4,13 +4,9 @@ package de.fraunhofer.isst.health.transit.spring.config;
 import de.fraunhofer.isst.health.transit.message.*;
 import de.fraunhofer.isst.health.transit.service.merge.*;
 import de.fraunhofer.isst.health.transit.service.trigger.*;
-import de.medizininformatik_initiative.processes.common.mimetype.CombinedDetectors;
-import de.medizininformatik_initiative.processes.common.mimetype.MimeTypeHelper;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
-import dev.dsf.bpe.v1.ProcessPluginApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -19,9 +15,6 @@ import org.springframework.context.annotation.Scope;
 @ComponentScan(basePackages = "de.fraunhofer.isst.health.transit")
 public class TransitConfig
 {
-    @Autowired
-    private ProcessPluginApi api;
-
     @Autowired
     private DmsFhirClientConfig dmsFhirClientConfig;
 
@@ -36,14 +29,14 @@ public class TransitConfig
 
     // all Processes
 
-    @Bean
+    /*
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public MimeTypeHelper mimeTypeHelper()
     {
         return new MimeTypeHelper(CombinedDetectors.fromDefaultWithNdJson(), api.getFhirContext());
     }
+     */
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public DataSetStatusGenerator dataSetStatusGenerator()
     {
@@ -52,222 +45,191 @@ public class TransitConfig
 
     // mergeDataSharing
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SendInitializeNewProjectDataSharing sendInitializeNewProjectDataSharing()
     {
-        return new SendInitializeNewProjectDataSharing(api, dmsFhirClientConfig.fhirClientFactory());
+        return new SendInitializeNewProjectDataSharing();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public HandleErrorMergeReceiveDownloadInsert handleErrorMergeReceiveDownloadInsert()
     {
-        return new HandleErrorMergeReceiveDownloadInsert(api);
+        return new HandleErrorMergeReceiveDownloadInsert();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public HandleErrorMergeReceiveSendReceipt handleErrorMergeReceiveSendReceipt()
     {
-        return new HandleErrorMergeReceiveSendReceipt(api);
+        return new HandleErrorMergeReceiveSendReceipt();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public HandleErrorMergeRelease handleErrorMergeRelease()
     {
-        return new HandleErrorMergeRelease(api);
+        return new HandleErrorMergeRelease();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SendCreateStore sendCreateStore()
     {
-        return new SendCreateStore(api);
+        return new SendCreateStore();
     }
 
     //Transit
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public CreateProjectFileListener createProjectFileListener()
     {
-        return new CreateProjectFileListener(api,
+        return new CreateProjectFileListener(
                 gpasManagerConfig.gpasManager(gpasManagerConfig.domainManagerBeanService(),
                         gpasManagerConfig.psnManagerBeanService()),
                 transitVariablesConfig, dmsProjectFileFhirClientConfig);
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public DownloadDataSetImplementation downloadDataSetImplementation()
     {
-        return new DownloadDataSetImplementation(api, dmsProjectFileFhirClientConfig, transitVariablesConfig,
-                dmsFhirClientConfig.fhirClientFactory());
+        return new DownloadDataSetImplementation(dmsProjectFileFhirClientConfig, transitVariablesConfig, dmsFhirClientConfig);
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public ValidateFHIRImplementation validateFHIRImplementation()
     {
-        return new ValidateFHIRImplementation(api);
+        return new ValidateFHIRImplementation();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public PseudonymizationImplementation pseudonymizationImplementation()
     {
-        return new PseudonymizationImplementation(api,
+        return new PseudonymizationImplementation(
                 gpasManagerConfig.gpasManager(gpasManagerConfig.domainManagerBeanService(),
                 gpasManagerConfig.psnManagerBeanService()), dmsFhirClientConfig);
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public InsertDataSetImplementation insertDataSetImplementation()
     {
-        return new InsertDataSetImplementation(api, dmsProjectFileFhirClientConfig, transitVariablesConfig, dmsFhirClientConfig);
+        return new InsertDataSetImplementation(dmsProjectFileFhirClientConfig, transitVariablesConfig, dmsFhirClientConfig);
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public CreateCollectionBundleImplementation createCollectionBundleImplementation()
     {
-        return new CreateCollectionBundleImplementation(api, dmsProjectFileFhirClientConfig, transitVariablesConfig);
+        return new CreateCollectionBundleImplementation(dmsProjectFileFhirClientConfig, transitVariablesConfig);
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public CompleteProjectFileImplementation completeProjectFileImplementation()
     {
-        return new CompleteProjectFileImplementation(api, dmsProjectFileFhirClientConfig);
+        return new CompleteProjectFileImplementation(dmsProjectFileFhirClientConfig);
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public ArchiveStore archiveStore()
     {
-        return new ArchiveStore(api, dmsProjectFileFhirClientConfig, transitVariablesConfig);
+        return new ArchiveStore(dmsProjectFileFhirClientConfig, transitVariablesConfig);
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public CompleteDsfTaskListener completeDsfTaskListener()
     {
-        return new CompleteDsfTaskListener(api);
+        return new CompleteDsfTaskListener();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SendTaskListener sendTaskListener()
     {
-        return new SendTaskListener(api);
+        return new SendTaskListener();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public RecieveTaskListener recieveTaskListener()
     {
-        return new RecieveTaskListener(api);
+        return new RecieveTaskListener();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public GetAndSendStoreUrlListener getAndSendStoreUrlListener()
     {
-        return new GetAndSendStoreUrlListener(api);
+        return new GetAndSendStoreUrlListener();
     }
 
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public DeleteFhirStore deleteFhirStore()
     {
-        return new DeleteFhirStore(api);
+        return new DeleteFhirStore();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public ReadAndSaveStoreValues readAndSaveStoreValues() {
-        return new ReadAndSaveStoreValues(api, dmsProjectFileFhirClientConfig);
+        return new ReadAndSaveStoreValues(dmsProjectFileFhirClientConfig);
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public ReleaseStoreDeletionQs releaseStoreDeletionQs() {
-        return new ReleaseStoreDeletionQs(api);
+        return new ReleaseStoreDeletionQs();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public CheckStoreDeletionQs checkStoreDeletionQs() {
-        return new CheckStoreDeletionQs(api);
+        return new CheckStoreDeletionQs();
     }
 
 //Trigger
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public CheckCloseProject checkCloseProject()
     {
-        return new CheckCloseProject(api);
+        return new CheckCloseProject();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public CheckNewProject checkNewProject()
     {
-        return new CheckNewProject(api);
+        return new CheckNewProject();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public CheckNewData checkNewData()
     {
-        return new CheckNewData(api, dmsFhirClientConfig.fhirClientFactory());
+        return new CheckNewData(dmsFhirClientConfig);
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SetTargetAndConfigureTimer setTargetAndConfigureTimer()
     {
-        return new SetTargetAndConfigureTimer(api);
+        return new SetTargetAndConfigureTimer();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SendNewProject sendNewProject()
     {
-        return new SendNewProject(api);
+        return new SendNewProject();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SendCloseProject sendCloseProject()
     {
-        return new SendCloseProject(api);
+        return new SendCloseProject();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SendNewData sendNewData()
     {
-        return new SendNewData(api);
+        return new SendNewData();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SetTarget setTarget()
     {
-        return new SetTarget(api);
+        return new SetTarget();
     }
 
-    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public SetTargetAndCorrelationKey setTargetAndCorrelationKey()
     {
-        return new SetTargetAndCorrelationKey(api);
+        return new SetTargetAndCorrelationKey();
     }
 
 }

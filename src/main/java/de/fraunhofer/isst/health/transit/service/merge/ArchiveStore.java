@@ -11,15 +11,15 @@ import de.fraunhofer.isst.health.transit.utils.projectfile.helper.MiiFhirComplex
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.DataUsageProject;
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.MIIEndpoint;
 import de.fraunhofer.isst.health.transit.utils.projectfile.status.DataUsageProjectStatus;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.variables.Variables;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.hl7.fhir.r4.model.*;
 
@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ArchiveStore extends AbstractServiceDelegate {
+public class ArchiveStore implements ServiceTask {
     private static final Logger LOGGER = Logger.getLogger(ArchiveStore.class.getName());
     private static final double CONVERSIONMB = 0.000001;
     private static final double OVERHEAD = 1.20;
@@ -48,18 +48,18 @@ public class ArchiveStore extends AbstractServiceDelegate {
     private DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig;
     private TransitVariablesConfig transitVariablesConfig;
 
-    public ArchiveStore(ProcessPluginApi api, DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig, TransitVariablesConfig transitVariablesConfig) {
-        super(api);
+    public ArchiveStore(DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig, TransitVariablesConfig transitVariablesConfig) {
+        super();
         this.dmsProjectFileFhirClientConfig = dmsProjectFileFhirClientConfig;
         this.transitVariablesConfig = transitVariablesConfig;
     }
 
     @Override
-    protected void doExecute(DelegateExecution delegateExecution, Variables variables) throws Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         LOGGER.info("ArchiveStore start");
 
-        dupIdentifier = ((String) delegateExecution.getVariable(ConstantsTransit.DUPIDENTIFIER)).toLowerCase(Locale.ROOT);
-        Bundle collection = (Bundle) variables.getResource(ConstantsTransit.COLLECTION_BUNDLE);
+        dupIdentifier = (variables.getString(ConstantsTransit.DUPIDENTIFIER)).toLowerCase(Locale.ROOT);
+        Bundle collection = (Bundle) variables.getFhirResource(ConstantsTransit.COLLECTION_BUNDLE);
 
         nginxUrl = SERVICEPREFIX + dupIdentifier;
 
@@ -112,13 +112,13 @@ public class ArchiveStore extends AbstractServiceDelegate {
                     if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
                         LOGGER.log(Level.SEVERE, "Could not POST archived project " + dupIdentifier + " to: " + nginxUrl
                                 + "Archiving and deletion of the FHIR-Store must happen manually");
-                        delegateExecution.setVariable(ConstantsTransit.ISARCHIVED, false);
+                        variables.setBoolean(ConstantsTransit.ISARCHIVED, false);
                     } else {
                         LOGGER.log(Level.INFO, "Project " + dupIdentifier + " successfully archived at " + nginxUrl
                                 + ". Deletion of FHIR-Store can proceed automatically.");
-                        delegateExecution.setVariable(ConstantsTransit.ISARCHIVED, true);
+                        variables.setBoolean(ConstantsTransit.ISARCHIVED, true);
                         //Update Project File metadata with archive store URL
-                        updateProjectFile(dupIdentifier, nginxUrl);
+                        updateProjectFile(api, dupIdentifier, nginxUrl);
                     }
                     response.close();
                     availableReq.close();
@@ -127,7 +127,7 @@ public class ArchiveStore extends AbstractServiceDelegate {
                     LOGGER.severe("File Storage for project " + dupIdentifier + " with url "
                             + nginxUrl + " could not be created automatically. "
                             + "Archiving and deletion of the FHIR-Store must happen manually");
-                    delegateExecution.setVariable(ConstantsTransit.ISARCHIVED, false);
+                    variables.setBoolean(ConstantsTransit.ISARCHIVED, false);
                 }
 
             }
@@ -136,6 +136,7 @@ public class ArchiveStore extends AbstractServiceDelegate {
             LOGGER.info("ArchiveStore: no data found on FHIR-Store!");
         }
     }
+
 
     //TODO This might cause issues if two projects are archived at the exact same time and
     // one commits between the clone and push of the other
@@ -178,10 +179,10 @@ public class ArchiveStore extends AbstractServiceDelegate {
         repositoryManagement.close();
     }
 
-    private void updateProjectFile(String dupIdentifier, String archiveUrl) {
+    private void updateProjectFile(ProcessPluginApi api, String dupIdentifier, String archiveUrl) {
 
         LOGGER.log(Level.INFO, "Looking up DUP with identifier " + dupIdentifier);
-        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(dupIdentifier, dmsProjectFileFhirClientConfig);
+        MiiFhirComplexClientHelper helper = new MiiFhirComplexClientHelper(api, dupIdentifier, dmsProjectFileFhirClientConfig);
         LOGGER.log(Level.INFO, "Looked up DUP with code: " + helper.getLastResponse().getStatusCode());
 
         DataUsageProject dataUsageProject = helper.getDataUsageProject();
@@ -213,4 +214,5 @@ public class ArchiveStore extends AbstractServiceDelegate {
             LOGGER.log(Level.INFO, "Projectfile uploaded successfully");
         }
     }
+
 }

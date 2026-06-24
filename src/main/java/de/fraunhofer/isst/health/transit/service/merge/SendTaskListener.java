@@ -2,51 +2,49 @@ package de.fraunhofer.isst.health.transit.service.merge;
 
 import ca.uhn.fhir.context.FhirContext;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
-import dev.dsf.fhir.client.FhirWebserviceClient;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
+import dev.dsf.bpe.v2.client.dsf.DsfClient;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.variables.Variables;
 import org.apache.commons.io.IOUtils;
-import org.bouncycastle.pkcs.PKCSException;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.hl7.fhir.r4.model.Task;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SendTaskListener extends AbstractServiceDelegate {
+public class SendTaskListener implements ServiceTask {
     private static final Logger LOGGER = Logger.getLogger(SendTaskListener.class.getName());
 
-    public SendTaskListener(ProcessPluginApi api) {
-        super(api);
+    public SendTaskListener() {
+        super();
     }
 
     @Override
-    protected void doExecute(DelegateExecution delegateExecution, Variables variables) throws Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         LOGGER.log(Level.INFO, "Started Camunda Implementation SendTaskListener");
 
-        LOGGER.info("SendTask Name : " + delegateExecution.getCurrentActivityName());
-        LOGGER.info("SendTask businessKey : " + delegateExecution.getBusinessKey());
+        LOGGER.info("SendTask ID : " + variables.getCurrentActivityId());
+        LOGGER.info("SendTask businessKey : " + variables.getBusinessKey());
 
-        if (delegateExecution.getCurrentActivityId().equals("requestContainerCreation")) {
-            requestFHIRStore(delegateExecution);
+        if (variables.getCurrentActivityId().equals("requestContainerCreation")) {
+            requestFHIRStore(api, variables);
         } else {
-            LOGGER.log(Level.SEVERE, "Unknown Message with ActivityId: " + delegateExecution.getCurrentActivityId());
+            LOGGER.log(Level.SEVERE, "Unknown Message with ActivityId: " + variables.getCurrentActivityId());
         }
     }
 
-    private void requestFHIRStore(DelegateExecution delegateExecution)
-            throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException, PKCSException {
+    private void requestFHIRStore(ProcessPluginApi api, Variables variables)
+            throws IOException {
 
         String taskString = IOUtils.toString(getClass().getResourceAsStream("/fhir/Task/task-create-store.xml"), StandardCharsets.UTF_8);
-        String dupIdentifier = ((String) delegateExecution.getVariable(ConstantsTransit.DUPIDENTIFIER));
+        String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
 
         String pattern = "yyyy-MM-dd'T'HH:mm:ssXXX";
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
@@ -57,11 +55,14 @@ public class SendTaskListener extends AbstractServiceDelegate {
         taskString = taskString.replace("#{requester}", ConstantsTransit.FHIR_STORE_REQUESTER);
         taskString = taskString.replace("#{recipient}", ConstantsTransit.FHIR_STORE_RECIPIENT);
         taskString = taskString.replace("#{project-identifier}", dupIdentifier);
-        taskString = taskString.replace("#{business-key}", delegateExecution.getBusinessKey());
+        taskString = taskString.replace("#{business-key}", variables.getBusinessKey());
 
         Task task = FhirContext.forR4().newXmlParser().parseResource(Task.class, taskString);
 
-        FhirWebserviceClient fhirWebserviceClient = api.getFhirWebserviceClientProvider().getLocalWebserviceClient();
+        DsfClient fhirWebserviceClient = (DsfClient) api.getDsfClientProvider().getLocal()
+                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+                        DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+
         fhirWebserviceClient.create(task);
     }
 

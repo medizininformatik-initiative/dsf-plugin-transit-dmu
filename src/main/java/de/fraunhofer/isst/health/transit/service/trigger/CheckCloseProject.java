@@ -1,13 +1,12 @@
 package de.fraunhofer.isst.health.transit.service.trigger;
 
-import de.fraunhofer.isst.health.transit.variables.Tasks;
-import de.fraunhofer.isst.health.transit.variables.TasksValues;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractServiceDelegate;
-import dev.dsf.bpe.v1.variables.Variables;
-import dev.dsf.fhir.client.FhirWebserviceClient;
-import org.camunda.bpm.engine.delegate.BpmnError;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
+import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
+import dev.dsf.bpe.v2.client.dsf.DsfClient;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.QuestionnaireResponse;
 import org.slf4j.Logger;
@@ -19,49 +18,47 @@ import java.util.Map;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.*;
 
-public class CheckCloseProject extends AbstractServiceDelegate
+public class CheckCloseProject implements ServiceTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(CheckCloseProject.class);
 
-	public CheckCloseProject(ProcessPluginApi api)
-	{
-		super(api);
+	public CheckCloseProject() {
+        super();
 	}
 
-	@Override
-	protected void doExecute(DelegateExecution execution, Variables variables) throws BpmnError, Exception
-	{
+    @Override
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+        String from = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);
 
+        DsfClient dsfClient = (DsfClient) api.getDsfClientProvider().getLocal()
+                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+                        DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
 
-		String from = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);
+        Map<String, List<String>> parameters = new HashMap<>();
+        parameters.put("questionnaire", List.of("http://medizininformatik-initiative.de/fhir/Questionnaire/release-merged-data-set"));
+        parameters.put("status", List.of("in-progress"));
+        parameters.put("_lastUpdated", List.of("ge" + from));
+        Bundle result = dsfClient.search(QuestionnaireResponse.class, parameters);
 
-		FhirWebserviceClient fhirWebserviceClient = api.getFhirWebserviceClientProvider().getLocalWebserviceClient();
-		Map<String, List<String>> parameters = new HashMap<>();
-		parameters.put("questionnaire", List.of("http://medizininformatik-initiative.de/fhir/Questionnaire/release-merged-data-set"));
-		parameters.put("status", List.of("in-progress"));
-		parameters.put("_lastUpdated", List.of("ge" + from));
-		Bundle result = fhirWebserviceClient.search(QuestionnaireResponse.class, parameters);
+        List<QuestionnaireResponse> tasks = result.getEntry().stream()
+                .filter(entry -> entry.getResource() instanceof QuestionnaireResponse)
+                .map(entry -> (QuestionnaireResponse) entry.getResource())
+                .toList();
+        // Extract the Task from the Bundle's entry
+        List<String> taskIds = result.getEntry().stream()
+                .filter(entry -> entry.getResource() instanceof QuestionnaireResponse)
+                .map(entry -> entry.getResource().getIdElement().getIdPart())
+                .toList();
 
-		List<QuestionnaireResponse> tasks = result.getEntry().stream()
-				.filter(entry -> entry.getResource() instanceof QuestionnaireResponse)
-				.map(entry -> (QuestionnaireResponse) entry.getResource())
-				.toList();
-		// Extract the Task from the Bundle's entry
-		List<String> taskIds = result.getEntry().stream()
-				.filter(entry -> entry.getResource() instanceof QuestionnaireResponse)
-				.map(entry -> entry.getResource().getIdElement().getIdPart())
-				.toList();
+        if (taskIds != null && !taskIds.isEmpty()){
 
-		if (taskIds != null && !taskIds.isEmpty()){
-
-			logger.info("Number of process to close: " + taskIds.size());
-			variables.setResourceList(BPMN_EXECUTION_CLOSE_PROCESS_LIST, tasks);
-			variables.setVariable(BPMN_EXECUTION_CLOSE_PROCESS_IDS,
-					TasksValues.create(new Tasks(taskIds)));
-			variables.setString(BPMN_EXECUTION_CLOSE_PROCESS, "yes");
-		}else{
-			variables.setString(BPMN_EXECUTION_CLOSE_PROCESS, "no");		}
-
-	}
+            logger.info("Number of process to close: " + taskIds.size());
+            variables.setFhirResourceList(BPMN_EXECUTION_CLOSE_PROCESS_LIST, tasks);
+            variables.setStringList(BPMN_EXECUTION_CLOSE_PROCESS_IDS,taskIds);
+            variables.setString(BPMN_EXECUTION_CLOSE_PROCESS, "yes");
+        }else{
+            variables.setString(BPMN_EXECUTION_CLOSE_PROCESS, "no");
+        }
+    }
 
 }

@@ -1,39 +1,46 @@
 package de.fraunhofer.isst.health.transit.service.merge;
 
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
+import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractTaskMessageSend;
-import dev.dsf.bpe.v1.variables.Variables;
-import dev.dsf.fhir.client.FhirWebserviceClient;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
-import org.hl7.fhir.r4.model.IdType;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.MessageSendTask;
+import dev.dsf.bpe.v2.activity.task.BusinessKeyStrategies;
+import dev.dsf.bpe.v2.activity.task.TaskSender;
+import dev.dsf.bpe.v2.activity.values.SendTaskValues;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.stream.Stream;
 
-public class DeleteFhirStore extends AbstractTaskMessageSend {
+public class DeleteFhirStore implements MessageSendTask {
     private static final Logger logger = LoggerFactory.getLogger(DeleteFhirStore.class);
 
-    public DeleteFhirStore(ProcessPluginApi api) {
-        super(api);
+    public DeleteFhirStore() {
+        super();
     }
 
     @Override
-    protected Stream<Task.ParameterComponent> getAdditionalInputParameters(DelegateExecution execution,
-                                                                           Variables variables)
-    {
-        String projectIdentifier = variables
-                .getString(ConstantsTransit.DUPIDENTIFIER);
+    public TaskSender getTaskSender(ProcessPluginApi api, Variables variables,
+                                    SendTaskValues sendTaskValues) {
+        return new RetryTaskSender(api, variables, sendTaskValues,
+                BusinessKeyStrategies.SAME,
+                (target) -> getAdditionalInputParameters(api, variables, sendTaskValues, target));
+    }
+
+    @Override
+    public List<Task.ParameterComponent> getAdditionalInputParameters(ProcessPluginApi api,
+                                                                      Variables variables, SendTaskValues sendTaskValues, Target target) {
+
+        String projectIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
         Task.ParameterComponent projectIdentifierInput = getProjectIdentifierInput(projectIdentifier);
 
-        Stream<Task.ParameterComponent> otherInputs = Stream.of(projectIdentifierInput);
-
-        return Stream.of(otherInputs).reduce(Stream::concat)
-                .orElseThrow(() -> new RuntimeException("Could not concat streams"));
+        return Stream.of(projectIdentifierInput).toList();
     }
 
     private Task.ParameterComponent getProjectIdentifierInput(String projectIdentifier)
@@ -47,6 +54,7 @@ public class DeleteFhirStore extends AbstractTaskMessageSend {
         return projectIdentifierInput;
     }
 
+    /*
     @Override
     protected IdType doSend(FhirWebserviceClient client, Task task)
     {
@@ -85,5 +93,6 @@ public class DeleteFhirStore extends AbstractTaskMessageSend {
                     exception.getMessage());
         }
     }
+     */
 
 }

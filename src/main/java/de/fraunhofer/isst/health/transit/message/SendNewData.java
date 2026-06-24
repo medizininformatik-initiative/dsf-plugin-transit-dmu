@@ -1,12 +1,15 @@
 package de.fraunhofer.isst.health.transit.message;
 
 import ca.uhn.fhir.context.FhirContext;
+import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
-import dev.dsf.bpe.v1.ProcessPluginApi;
-import dev.dsf.bpe.v1.activity.AbstractTaskMessageSend;
-import dev.dsf.bpe.v1.variables.Variables;
-import dev.dsf.fhir.client.FhirWebserviceClient;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
+import dev.dsf.bpe.v2.ProcessPluginApi;
+import dev.dsf.bpe.v2.activity.MessageSendTask;
+import dev.dsf.bpe.v2.activity.task.BusinessKeyStrategies;
+import dev.dsf.bpe.v2.activity.task.TaskSender;
+import dev.dsf.bpe.v2.activity.values.SendTaskValues;
+import dev.dsf.bpe.v2.variables.Target;
+import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,50 +19,56 @@ import java.util.stream.Stream;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.*;
 
-public class SendNewData extends AbstractTaskMessageSend
+public class SendNewData implements MessageSendTask
 {
 	private static final Logger logger = LoggerFactory.getLogger(SendNewData.class);
 
-	public SendNewData(ProcessPluginApi api)
+	public SendNewData()
 	{
-		super(api);
+		super();
 	}
 
-	@Override
-	protected Stream<Task.ParameterComponent> getAdditionalInputParameters(DelegateExecution execution,
-			Variables variables)
-	{
+    @Override
+    public TaskSender getTaskSender(ProcessPluginApi api, Variables variables,
+                                    SendTaskValues sendTaskValues) {
+        return new RetryTaskSender(api, variables, sendTaskValues,
+                BusinessKeyStrategies.SAME,
+                (target) -> getAdditionalInputParameters(api, variables, sendTaskValues, target));
+    }
 
-		String documentReferenceValue =	(String) variables.getVariable(BPMN_EXECUTION_DATA);
-		List<Resource> documentReferences = variables.getResourceList(BPMN_EXECUTION_DATA_LIST);
+    @Override
+    public List<Task.ParameterComponent> getAdditionalInputParameters(ProcessPluginApi api,
+                                                                      Variables variables, SendTaskValues sendTaskValues, Target target) {
 
-		DocumentReference documentReference = (DocumentReference) documentReferences.stream()
-				.filter(task -> task.getIdElement().getIdPart().equals(documentReferenceValue))
-				.findFirst().get();
+        String documentReferenceValue =	variables.getString(BPMN_EXECUTION_DATA);
+        List<Resource> documentReferences = variables.getFhirResourceList(BPMN_EXECUTION_DATA_LIST);
+
+        DocumentReference documentReference = (DocumentReference) documentReferences.stream()
+                .filter(task -> task.getIdElement().getIdPart().equals(documentReferenceValue))
+                .findFirst().get();
 
 
+        String dizId = documentReference.getAuthorFirstRep().getIdentifier().getValue();
 
-		String dizId = documentReference.getAuthorFirstRep().getIdentifier().getValue();
+        Task.ParameterComponent documentReferenceParameter = new Task.ParameterComponent();
+        documentReferenceParameter.getType().addCoding().setSystem(CODESYSTEM_DMU_TOOLS)
+                .setCode(CODESYSTEM_DMU_VALUE_DOCUMENT_REFERENCE);
+        documentReferenceParameter.setValue(new StringType(documentReferenceValue));
 
-		Task.ParameterComponent documentReferenceParameter = new Task.ParameterComponent();
-		documentReferenceParameter.getType().addCoding().setSystem(CODESYSTEM_DMU_TOOLS)
-				.setCode(CODESYSTEM_DMU_VALUE_DOCUMENT_REFERENCE);
-		documentReferenceParameter.setValue(new StringType(documentReferenceValue));
+        Task.ParameterComponent inputDataSetReference = new Task.ParameterComponent();
+        inputDataSetReference.getType().addCoding().setSystem(CODESYSTEM_DMU_TOOLS)
+                .setCode(CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_REFERENCE);
+        inputDataSetReference.setValue(new StringType(documentReference.getContentFirstRep().getAttachment().getUrl()));
 
-		Task.ParameterComponent inputDataSetReference = new Task.ParameterComponent();
-		inputDataSetReference.getType().addCoding().setSystem(CODESYSTEM_DMU_TOOLS)
-				.setCode(CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_REFERENCE);
-		inputDataSetReference.setValue(new StringType(documentReference.getContentFirstRep().getAttachment().getUrl()));
+        Task.ParameterComponent inputDiz = new Task.ParameterComponent();
+        inputDiz.getType().addCoding().setSystem(CODESYSTEM_DMU_TOOLS)
+                .setCode(CODESYSTEM_DMU_VALUE_DIZ);
+        inputDiz.setValue(new StringType(dizId));
 
-		Task.ParameterComponent inputDiz = new Task.ParameterComponent();
-		inputDiz.getType().addCoding().setSystem(CODESYSTEM_DMU_TOOLS)
-				.setCode(CODESYSTEM_DMU_VALUE_DIZ);
-		inputDiz.setValue(new StringType(dizId));
+        return Stream.of(documentReferenceParameter, inputDataSetReference, inputDiz).toList();
+    }
 
-		return Stream.of(documentReferenceParameter, inputDataSetReference, inputDiz);
-
-	}
-
+    /*
 	@Override
 	protected IdType doSend(FhirWebserviceClient client, Task task)
 	{
@@ -109,5 +118,6 @@ public class SendNewData extends AbstractTaskMessageSend
 					exception.getMessage());
 		}
 	}
+     */
 
 }
