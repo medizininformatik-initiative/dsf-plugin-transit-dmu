@@ -22,6 +22,7 @@ import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.constants.CodeSystems;
 import dev.dsf.bpe.v2.constants.NamingSystems;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
+import dev.dsf.bpe.v2.service.TaskHelper;
 import dev.dsf.bpe.v2.variables.Target;
 import dev.dsf.bpe.v2.variables.Targets;
 import dev.dsf.bpe.v2.variables.Variables;
@@ -30,6 +31,7 @@ import org.hl7.fhir.r4.model.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.*;
 
@@ -59,6 +61,10 @@ public class CreateProjectFileListener implements ServiceTask {
         //Get BusinessKey
         String bussinessKey = getBussinessKey(task, api);
         variables.setString(ConstantsTransit.DSF_TASK_DATASHARING_BUSSINESS_KEY, bussinessKey);
+
+        List<String> researcherIdentifiers = getResearcherIdentifiers(api.getTaskHelper(), task);
+        variables.setStringList(ConstantsTransit.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS,
+                researcherIdentifiers);
 
         //DMS Target for Store controller
         variables.setTarget(
@@ -208,6 +214,16 @@ public class CreateProjectFileListener implements ServiceTask {
         return api.getTaskHelper()
                 .getFirstInputParameterValue(task, CodeSystems.BpmnMessage.businessKey(), StringType.class)
                 .orElseThrow(() -> new RuntimeException("Business Key is missing")).getValue();
+    }
+
+    private List<String> getResearcherIdentifiers(TaskHelper helper, Task task)
+    {
+        return helper
+                .getInputParameters(task, ConstantsTransit.CODESYSTEM_DATA_SHARING,
+                        ConstantsTransit.CODESYSTEM_DATA_SHARING_VALUE_RESEARCHER_IDENTIFIER, Identifier.class)
+                .map(i -> (Identifier) i.getValue())
+                .filter(i -> ConstantsTransit.NAMINGSYSTEM_RESEARCHER_IDENTIFIER.equals(i.getSystem()))
+                .map(Identifier::getValue).collect(Collectors.toList());
     }
 
 }
