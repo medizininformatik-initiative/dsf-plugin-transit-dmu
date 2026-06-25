@@ -62,9 +62,10 @@ public class TransitProcessPluginDefinition implements ProcessPluginDefinition
 		var sTdto = "fhir/StructureDefinition/task-dataset-time-out.xml";
 
 		var vDaSh = "fhir/ValueSet/data-sharing.xml";
-
 		var cDmuTools = "fhir/CodeSystem/dmu-tools.xml";
 		var vDmuTools = "fhir/ValueSet/dmu-tools.xml";
+
+		var qArchive = "fhir/Questionnaire/questionnaire-confirm-archive-url.xml";
 
 		var aTrig = "fhir/ActivityDefinition/transit-trigger.xml";
 		var sStart = "fhir/StructureDefinition/task-start-transit.xml";
@@ -74,7 +75,7 @@ public class TransitProcessPluginDefinition implements ProcessPluginDefinition
 
 
 		return Map.of(ConstantsTransit.PROCESS_NAME_FULL_TRANSIT, //
-				List.of(aMer, cDaSh, vDaSh, eDaSeStEr, sEmedId, sTinpds, sTids,sTdto, cDmuTools, vDmuTools, qStDel),
+				List.of(aMer, cDaSh, vDaSh, eDaSeStEr, sEmedId, sTinpds, sTids,sTdto, cDmuTools, vDmuTools, qStDel, qArchive),
 				ConstantsTransit.PROCESS_NAME_FULL_TRANSIT_TRIGGER, //
 				List.of(aTrig, sStart, sStop));
 	}

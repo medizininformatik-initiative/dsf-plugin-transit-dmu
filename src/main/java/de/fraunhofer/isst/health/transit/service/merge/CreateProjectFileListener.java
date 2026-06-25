@@ -66,6 +66,8 @@ public class CreateProjectFileListener implements ServiceTask {
         variables.setStringList(ConstantsTransit.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS,
                 researcherIdentifiers);
 
+        variables.setBoolean(ConstantsTransit.BPMN_EXECUTION_KUBERNETES, transitVariablesConfig.isKubernetes());
+
         //DMS Target for Store controller
         variables.setTarget(
                 variables.createTarget(api.getOrganizationProvider().getLocalOrganizationIdentifierValue().get(),
