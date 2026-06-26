@@ -47,6 +47,7 @@ public interface ConstantsTransit
     String DUPIDENTIFIER = "dupIdentifier";
     String FHIRSTOREURL = "fhirContainerUrl";
     String FHIRSTOREID = "fhirContainerId";
+	String ARCHIVEURL = "archiveUrl";
     String ISARCHIVED = "archived";
     String BUNDLEOBJECT = "bundleObject";
     String BUNDLEID = "bundleID";
@@ -118,4 +119,14 @@ public interface ConstantsTransit
 	String BPMN_EXECUTION_CLOSE_PROCESS = "closeProcess";
 	String BPMN_EXECUTION_CLOSE_PROCESS_LIST = "processList";
 	String BPMN_EXECUTION_CLOSE_PROCESS_IDS = "processListIds";
+
+	//Kubernetes
+	String BPMN_EXECUTION_KUBERNETES = "kubernetes";
+
+	//Questionnare
+	String QUESTIONNAIRES_ITEM_DISPLAY = "display";
+	String QUESTIONNAIRES_ITEM_RELEASE = "release";
+	String QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER = "{project-identifier-placeholder}";
+	String QUESTIONNAIRES_ITEM_ARCHIVE_URL = "archive-url";
+
 }
