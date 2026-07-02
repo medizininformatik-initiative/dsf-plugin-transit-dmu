@@ -66,9 +66,7 @@ public class GetAndSendStoreUrlListener implements ServiceTask {
     private QuestionnaireResponse getQuestionnaireResponse(ProcessPluginApi api, String qsId) {
         LOGGER.log(Level.INFO, "QuestionnaireResponse ID: " + qsId);
 
-        DsfClient dsfClient = (DsfClient) api.getDsfClientProvider().getLocal()
-                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-                        DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+        DsfClient dsfClient = api.getDsfClientProvider().getLocal();
 
         Resource object =
                 dsfClient.read("QuestionnaireResponse", qsId);

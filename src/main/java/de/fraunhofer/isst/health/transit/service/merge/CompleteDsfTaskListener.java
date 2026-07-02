@@ -33,9 +33,8 @@ public class CompleteDsfTaskListener implements ServiceTask {
 
         LOGGER.log(Level.INFO, "sendQuestionnaireResponse start");
 
-        DsfClient dsfClient = (DsfClient) api.getDsfClientProvider().getLocal()
-                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-                        DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+        DsfClient dsfClient = api.getDsfClientProvider().getLocal();
+
         dsfClient.update(questionnaireResponse);
         LOGGER.log(Level.INFO, "sendQuestionnaireResponse end");
     }

@@ -30,9 +30,7 @@ public class CheckNewProject implements ServiceTask
     public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         String from = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);
 
-        DsfClient dsfClient = (DsfClient) api.getDsfClientProvider().getLocal()
-                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-                    DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+        DsfClient dsfClient = api.getDsfClientProvider().getLocal();
 
         Map<String, List<String>> parameters = new HashMap<>();
         parameters.put("_profile", List.of("http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing"));

@@ -59,9 +59,7 @@ public class SendTaskListener implements ServiceTask {
 
         Task task = FhirContext.forR4().newXmlParser().parseResource(Task.class, taskString);
 
-        DsfClient fhirWebserviceClient = (DsfClient) api.getDsfClientProvider().getLocal()
-                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-                        DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+        DsfClient fhirWebserviceClient = api.getDsfClientProvider().getLocal();
 
         fhirWebserviceClient.create(task);
     }

@@ -52,9 +52,7 @@ public class DownloadDataSetImplementation implements ServiceTask {
     public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         LOGGER.log(Level.INFO, "Start DownloadDataSetImplementation");
 
-        DsfClient inboxClient = (DsfClient) api.getDsfClientProvider().getByEndpointUrl(dmsFhirClientConfig.getFhirStoreBaseUrl())
-                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-                        DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+        DsfClient inboxClient = api.getDsfClientProvider().getByEndpointUrl(dmsFhirClientConfig.getFhirStoreBaseUrl());
 
         setVariables(api, variables);
 
