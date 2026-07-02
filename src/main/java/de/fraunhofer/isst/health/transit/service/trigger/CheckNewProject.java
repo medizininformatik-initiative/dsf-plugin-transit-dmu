@@ -31,7 +31,7 @@ public class CheckNewProject implements ServiceTask
         DsfClient dsfClient = api.getDsfClientProvider().getLocal();
 
         Map<String, List<String>> parameters = new HashMap<>();
-        parameters.put("_profile", List.of("http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing"));
+        parameters.put("_profile", List.of("http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing|1.1"));
         parameters.put("status", List.of("in-progress"));
         parameters.put("_lastUpdated", List.of("ge" + from));
         Bundle result = dsfClient.search(Task.class, parameters);
