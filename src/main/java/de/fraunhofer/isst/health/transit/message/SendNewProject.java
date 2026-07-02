@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Optional;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.BPMN_EXECUTION_PROJECT;
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.BPMN_EXECUTION_PROJECTS;
@@ -42,18 +41,16 @@ public class SendNewProject implements MessageSendTask
         String projectId =	variables.getString(BPMN_EXECUTION_PROJECT);
         List<Task> tasks = variables.getFhirResourceList(BPMN_EXECUTION_PROJECTS);
 
-        Optional<Task> foundTask = tasks.stream()
+        return tasks.stream()
                 .filter(task -> task.getIdElement().getIdPart().equals(projectId))
-                .findFirst();
-
-        return foundTask
-                .map(task -> (Task.ParameterComponent) task.getInput().stream()
-                        .filter(input -> {
-                            String code = input.getType().getCodingFirstRep().getCode();
-                            return !("message-name".equals(code) || "business-key".equals(code));
-                        })
-                )
-                .stream().toList();
+                .findFirst()
+                .stream()
+                .flatMap(task -> task.getInput().stream())
+                .filter(input -> {
+                    String code = input.getType().getCodingFirstRep().getCode();
+                    return !("message-name".equals(code) || "business-key".equals(code));
+                })
+                .toList();
     }
 
     /*
