@@ -49,7 +49,7 @@ public class CheckNewProject implements ServiceTask
         if (taskIds != null && !taskIds.isEmpty()){
             logger.info("Number of New Projects: " + taskIds.size());
             variables.setFhirResourceList(BPMN_EXECUTION_PROJECTS, tasks);
-            variables.setStringList(BPMN_EXECUTION_PROJECT_IDS,taskIds);
+            variables.setStringList(BPMN_EXECUTION_PROJECT_IDS, taskIds);
             variables.setString(BPMN_EXECUTION_NEW_PROJECT, "yes");
         }else{
             variables.setString(BPMN_EXECUTION_NEW_PROJECT, "no");
