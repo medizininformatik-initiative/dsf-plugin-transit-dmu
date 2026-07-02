@@ -66,7 +66,6 @@ public class SendCreateStore implements MessageSendTask
 	protected IdType doSend(FhirWebserviceClient client, Task task)
 	{
 		return client.withMinimalReturn()
-				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
 				.create(task);
 	}
 
