@@ -1,5 +1,6 @@
 package de.fraunhofer.isst.health.transit.message;
 
+import de.fraunhofer.isst.health.transit.ConstantsTransit;
 import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.MessageSendTask;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.BPMN_EXECUTION_PROJECT;
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.BPMN_EXECUTION_PROJECTS;
@@ -39,59 +41,21 @@ public class SendNewProject implements MessageSendTask
                                                                       Variables variables, SendTaskValues sendTaskValues, Target target) {
 
         String projectId =	variables.getString(BPMN_EXECUTION_PROJECT);
-        List<Task> tasks = variables.getFhirResourceList(BPMN_EXECUTION_PROJECTS);
 
-        return tasks.stream()
-                .filter(task -> task.getIdElement().getIdPart().equals(projectId))
-                .findFirst()
-                .stream()
-                .flatMap(task -> task.getInput().stream())
-                .filter(input -> {
-                    String code = input.getType().getCodingFirstRep().getCode();
-                    return !("message-name".equals(code) || "business-key".equals(code));
-                })
+        Task.ParameterComponent mergeTaskIdInput = getMergeTaskIdInput(projectId);
+
+        return Stream.of(mergeTaskIdInput)
                 .toList();
     }
 
-    /*
-	@Override
-	protected IdType doSend(FhirWebserviceClient client, Task task)
-	{
-		return client.withMinimalReturn()
-				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
-				.create(task);
-	}
+    private Task.ParameterComponent getMergeTaskIdInput(String mergeId)
+    {
+        Task.ParameterComponent mergeTaskIdInput = new Task.ParameterComponent();
+        mergeTaskIdInput.getType().addCoding().setSystem(ConstantsTransit.CODESYSTEM_DMU_TOOLS)
+                .setCode(ConstantsTransit.CODESYSTEM_MERGE_TASK_ID);
+        mergeTaskIdInput.setValue(new StringType(mergeId));
 
-	@Override
-	protected void handleSendTaskError(DelegateExecution execution, Variables variables, Exception exception,
-			String errorMessage)
-	{
-		Task task = variables.getStartTask();
-		addErrorMessage(task, errorMessage);
-
-		logger.debug("Error while executing Task message send " + this.getClass().getName(), exception);
-		logger.error("Process {} has fatal error in step {} for task {}, reason: {}",
-				execution.getProcessDefinitionId(), execution.getActivityInstanceId(), task.getId(),
-				exception.getMessage());
-
-		try
-		{
-			if (task != null)
-			{
-				task.setStatus(Task.TaskStatus.FAILED);
-				api.getFhirWebserviceClientProvider().getLocalWebserviceClient().withMinimalReturn().update(task);
-			}
-			else
-			{
-				logger.warn("Start Task null, unable update Task with failed state");
-			}
-		}
-		finally
-		{
-			execution.getProcessEngine().getRuntimeService().deleteProcessInstance(execution.getProcessInstanceId(),
-					exception.getMessage());
-		}
-	}
-     */
+        return mergeTaskIdInput;
+    }
 
 }
