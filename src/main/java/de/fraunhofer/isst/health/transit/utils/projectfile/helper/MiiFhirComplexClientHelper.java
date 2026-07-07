@@ -12,11 +12,8 @@ import org.hl7.fhir.r4.model.ResearchStudy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class MiiFhirComplexClientHelper extends MiiFhirSimpleClientHelper {
-    private static final Logger LOGGER = Logger.getLogger(MiiFhirComplexClientHelper.class.getName());
     private DataUsageProject dup;
 
     /**
@@ -32,20 +29,14 @@ public class MiiFhirComplexClientHelper extends MiiFhirSimpleClientHelper {
      */
     public MiiFhirComplexClientHelper(ProcessPluginApi api, String projectIdentifier, DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig) {
         super(api, dmsProjectFileFhirClientConfig);
-        LOGGER.log(Level.INFO, "Started Constructor MiiFhirComplexClientHelper (Super Done)");
 
         HTTPResponseObject responseObject = searchByIdentifier(projectIdentifier, ESearchableResource.RESEARCH_STUDY);
-        LOGGER.log(Level.INFO, "HTTPResponseObject created");
 
-        LOGGER.log(Level.INFO, "Start If-Clause");
         if (responseObject.hasResource()) {
-            LOGGER.log(Level.INFO, "If-Clause Case 1");
             dup = new DataUsageProject((ResearchStudy) responseObject.getResource(), this);
         } else {
-            LOGGER.log(Level.INFO, "Start If-Clause Case 2");
             dup = new DataUsageProject(projectIdentifier, this);
         }
-        LOGGER.log(Level.INFO, "Finished Constructor MiiFhirComplexClientHelper");
     }
 
     /**
