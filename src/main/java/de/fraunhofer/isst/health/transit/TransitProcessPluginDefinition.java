@@ -52,11 +52,8 @@ public class TransitProcessPluginDefinition implements ProcessPluginDefinition
 
 		var aMer = "fhir/ActivityDefinition/transit.xml";
 
-		var cDaSh = "fhir/CodeSystem/data-sharing.xml";
-
 		var eDaSeStEr = "fhir/StructureDefinition/extension-data-set-status-error.xml";
 
-		var sEmedId = "fhir/StructureDefinition/extension-dic-identifier.xml";
 		var sTinpds = "fhir/StructureDefinition/task-initialize-new-project-data-sharing.xml";
 		var sTids = "fhir/StructureDefinition/task-inbox-data-set.xml";
 		var sTdto = "fhir/StructureDefinition/task-dataset-time-out.xml";
@@ -75,7 +72,7 @@ public class TransitProcessPluginDefinition implements ProcessPluginDefinition
 
 
 		return Map.of(ConstantsTransit.PROCESS_NAME_FULL_TRANSIT, //
-				List.of(aMer, cDaSh, vDaSh, eDaSeStEr, sEmedId, sTinpds, sTids,sTdto, cDmuTools, vDmuTools, qStDel, qArchive),
+				List.of(aMer, vDaSh, eDaSeStEr, sTinpds, sTids,sTdto, cDmuTools, vDmuTools, qStDel, qArchive),
 				ConstantsTransit.PROCESS_NAME_FULL_TRANSIT_TRIGGER, //
 				List.of(aTrig, sStart, sStop));
 	}

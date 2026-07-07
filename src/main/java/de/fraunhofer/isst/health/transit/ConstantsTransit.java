@@ -70,6 +70,9 @@ public interface ConstantsTransit
     String REMOVE_IDENTIFIER = "removeIdentifier";
 	String COLLECTION_BUNDLE = "collectionBundle";
 
+	//Project File
+	String PROJECT_FILE = "projectfile";
+
     //FHIR-Store
     String FHIR_STORE_VERSION = "1.0";
     String FHIR_STORE_REQUESTER = "Transit";
@@ -119,7 +122,7 @@ public interface ConstantsTransit
 	String BPMN_EXECUTION_CLOSE_PROCESS = "closeProcess";
 	String BPMN_EXECUTION_CLOSE_PROCESS_LIST = "processList";
 	String BPMN_EXECUTION_CLOSE_PROCESS_IDS = "processListIds";
-
+	String CODESYSTEM_MERGE_TASK_ID = "merge-task-id";
 	//Kubernetes
 	String BPMN_EXECUTION_KUBERNETES = "kubernetes";
 
