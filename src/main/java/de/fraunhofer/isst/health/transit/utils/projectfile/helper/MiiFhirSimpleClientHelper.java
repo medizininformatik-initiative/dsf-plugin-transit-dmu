@@ -15,9 +15,11 @@ import org.hl7.fhir.r4.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MiiFhirSimpleClientHelper {
-
+    private static final Logger LOGGER = Logger.getLogger(MiiFhirSimpleClientHelper.class.getName());
     private final IGenericClient fhirClient;
     private final DmsProjectFileFhirClientConfig config;
     private final CapturingInterceptor capturingInterceptor;
@@ -29,18 +31,23 @@ public class MiiFhirSimpleClientHelper {
      * @param config the configuration of the server
      */
     public MiiFhirSimpleClientHelper(ProcessPluginApi api, DmsProjectFileFhirClientConfig config) {
+        LOGGER.log(Level.INFO, "Started Constructor MiiFhirSimpleClientHelper");
+        LOGGER.log(Level.INFO, "Set Config");
         this.config = config;
 //        FhirContext context = FhirContext.forR4();
 //        if (config.getTimeOut() != 0) {
 //            context.getRestfulClientFactory().setSocketTimeout(config.getTimeOut());
 //        }
 
+        LOGGER.log(Level.INFO, "Set fhirClient");
         this.fhirClient = api.getFhirClientProvider().getById(ConstantsTransit.PROJECT_FILE).get();
 
         //this.fhirClient = config.fhirClientFactory().getFhirClient().getGenericFhirClient();
         //this.fhirClient = context.newRestfulGenericClient(config.getServerUrl());
 
+        LOGGER.log(Level.INFO, "Set capturingInterceptor");
         capturingInterceptor = new CapturingInterceptor();
+        LOGGER.log(Level.INFO, "Register Interceptor");
         fhirClient.registerInterceptor(capturingInterceptor);
     }
 
