@@ -13,6 +13,7 @@ import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UriType;
 
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,6 +50,7 @@ public class GetAndSendStoreUrlListener implements ServiceTask {
         }
 
         questionnaireResponse.setStatus(QuestionnaireResponse.QuestionnaireResponseStatus.COMPLETED);
+        questionnaireResponse.setAuthored(new Date());
 
         variables.setFhirResource(ConstantsTransit.QUESTIONNAIRERESPONSE, questionnaireResponse);
 
