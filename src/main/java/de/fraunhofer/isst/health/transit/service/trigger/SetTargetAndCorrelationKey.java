@@ -52,6 +52,7 @@ public class SetTargetAndCorrelationKey implements ServiceTask
                                 projectID.equals(ident.getValue())
                 ))
                 .findFirst();
+
         if (matchingTask.isPresent())
         {
             String correlationKey = matchingTask.get().getInput().stream()
