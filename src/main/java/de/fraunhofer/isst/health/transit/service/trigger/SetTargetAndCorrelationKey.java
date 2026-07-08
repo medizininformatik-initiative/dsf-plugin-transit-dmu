@@ -69,6 +69,7 @@ public class SetTargetAndCorrelationKey implements ServiceTask
                     })
                     // map to valueString
                     .map(input -> input.getValue().primitiveValue()).findFirst().orElse(null);
+
             logger.info(
                     "Processing data-set with id '{}' from organization '{}' for data-sharing project '{}' in Task with id '{}'",
                     documentReference.getId(),

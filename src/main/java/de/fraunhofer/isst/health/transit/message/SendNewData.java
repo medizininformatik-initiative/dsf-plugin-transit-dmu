@@ -65,7 +65,12 @@ public class SendNewData implements MessageSendTask
                 .setCode(CODESYSTEM_DMU_VALUE_DIZ);
         inputDiz.setValue(new StringType(dizId));
 
-        return Stream.of(documentReferenceParameter, inputDataSetReference, inputDiz).toList();
+        Task.ParameterComponent correlationKey = new Task.ParameterComponent();
+        correlationKey.getType().addCoding().setSystem(DSF_TASK_CODESYSTEM_BPMNMESSAGE)
+                .setCode(DSF_TASK_CORRELATION_KEY);
+        correlationKey.setValue(new StringType(variables.getTarget().getCorrelationKey()));
+
+        return Stream.of(correlationKey, documentReferenceParameter, inputDataSetReference, inputDiz).toList();
     }
 
     /*

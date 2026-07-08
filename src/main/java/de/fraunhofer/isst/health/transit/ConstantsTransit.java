@@ -84,9 +84,9 @@ public interface ConstantsTransit
 	 String DSF_TASK_CODESYSTEM_DATASHARING
 			= "http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing";
 
-
 	 String DSF_TASK_BPMNMESSAGE_MESSAGENAME = "message-name";
 	 String DSF_TASK_BPMNMESSAGE_BUSINESSKEY = "business-key";
+	 String DSF_TASK_CORRELATION_KEY = "correlation-key";
 
 	 String DSF_TASK_DATASHARING_DIC_CORRELATION = "dic-correlation-key";
 	 String DSF_TASK_DATASHARING_DIC_IDENTIFIER
