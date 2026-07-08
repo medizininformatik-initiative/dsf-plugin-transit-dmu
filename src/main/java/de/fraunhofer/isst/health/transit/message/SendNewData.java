@@ -1,8 +1,6 @@
 package de.fraunhofer.isst.health.transit.message;
 
-import ca.uhn.fhir.context.FhirContext;
 import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.MessageSendTask;
 import dev.dsf.bpe.v2.activity.task.BusinessKeyStrategies;
@@ -31,6 +29,7 @@ public class SendNewData implements MessageSendTask
     @Override
     public TaskSender getTaskSender(ProcessPluginApi api, Variables variables,
                                     SendTaskValues sendTaskValues) {
+
         return new RetryTaskSender(api, variables, sendTaskValues,
                 BusinessKeyStrategies.SAME,
                 (target) -> getAdditionalInputParameters(api, variables, sendTaskValues, target));
@@ -46,7 +45,6 @@ public class SendNewData implements MessageSendTask
         DocumentReference documentReference = (DocumentReference) documentReferences.stream()
                 .filter(task -> task.getIdElement().getIdPart().equals(documentReferenceValue))
                 .findFirst().get();
-
 
         String dizId = documentReference.getAuthorFirstRep().getIdentifier().getValue();
 
@@ -65,12 +63,7 @@ public class SendNewData implements MessageSendTask
                 .setCode(CODESYSTEM_DMU_VALUE_DIZ);
         inputDiz.setValue(new StringType(dizId));
 
-        Task.ParameterComponent correlationKey = new Task.ParameterComponent();
-        correlationKey.getType().addCoding().setSystem(DSF_TASK_CODESYSTEM_BPMNMESSAGE)
-                .setCode(DSF_TASK_CORRELATION_KEY);
-        correlationKey.setValue(new StringType(variables.getTarget().getCorrelationKey()));
-
-        return Stream.of(correlationKey, documentReferenceParameter, inputDataSetReference, inputDiz).toList();
+        return Stream.of(documentReferenceParameter, inputDataSetReference, inputDiz).toList();
     }
 
     /*
