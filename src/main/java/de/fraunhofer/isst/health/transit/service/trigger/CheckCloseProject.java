@@ -40,6 +40,7 @@ public class CheckCloseProject implements ServiceTask
                 .filter(entry -> entry.getResource() instanceof QuestionnaireResponse)
                 .map(entry -> (QuestionnaireResponse) entry.getResource())
                 .toList();
+
         // Extract the Task from the Bundle's entry
         List<String> taskIds = result.getEntry().stream()
                 .filter(entry -> entry.getResource() instanceof QuestionnaireResponse)
