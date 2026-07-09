@@ -1,40 +1,23 @@
 package de.fraunhofer.isst.health.transit.service.merge;
 
-import ca.uhn.fhir.context.FhirContext;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
 import de.fraunhofer.isst.health.transit.spring.config.DmsProjectFileFhirClientConfig;
 import de.fraunhofer.isst.health.transit.spring.config.TransitVariablesConfig;
 import de.fraunhofer.isst.health.transit.utils.Renderer;
 import de.fraunhofer.isst.health.transit.utils.RepositoryManagement;
-import de.fraunhofer.isst.health.transit.utils.ResultFormatter;
-import de.fraunhofer.isst.health.transit.utils.projectfile.enums.EDataUsageProjectCode;
-import de.fraunhofer.isst.health.transit.utils.projectfile.enums.EEndpointPayloadMimeType;
-import de.fraunhofer.isst.health.transit.utils.projectfile.helper.MiiFhirComplexClientHelper;
-import de.fraunhofer.isst.health.transit.utils.projectfile.mii.DataUsageProject;
-import de.fraunhofer.isst.health.transit.utils.projectfile.mii.MIIEndpoint;
-import de.fraunhofer.isst.health.transit.utils.projectfile.status.DataUsageProjectStatus;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.DateTimeType;
-import org.hl7.fhir.r4.model.Endpoint;
-import org.hl7.fhir.r4.model.OperationOutcome;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CreateArchiveStore implements ServiceTask {
@@ -93,10 +76,7 @@ public class CreateArchiveStore implements ServiceTask {
                     TimeUnit.MINUTES.sleep(RETRYDELAYMINUTES);
                 }
             }
-
         }
-
-
     }
 
 
@@ -108,33 +88,40 @@ public class CreateArchiveStore implements ServiceTask {
         String chart = Renderer.renderChart(dupIdentifier);
         String values = Renderer.renderValues(dupIdentifier, size);
         LOGGER.info("Checking out repo with username " + transitVariablesConfig.getGitUsername());
+
         RepositoryManagement repositoryManagement = new RepositoryManagement(
                 dupIdentifier,
                 transitVariablesConfig.getGitUrl(),
                 transitVariablesConfig.getGitBranch(),
                 transitVariablesConfig.getGitUsername(),
                 transitVariablesConfig.getGitCredentials());
+
         repositoryManagement.cloneInto("Repository-" + dupIdentifier);
+
         repositoryManagement.writeFile(
                 "development/dmu/charts/archives-" + dupIdentifier + "/templates/",
                 "install.yaml",
                 install,
                 false);
+
         repositoryManagement.writeFile(
                 "development/dmu/charts/archives-" + dupIdentifier + "/",
                 "Chart.yaml",
                 chart,
                 false);
+
         repositoryManagement.writeFile(
                 "development/dmu/charts/archives-" + dupIdentifier + "/",
                 "values.yaml",
                 values,
                 false);
+
         repositoryManagement.writeFile(
                 "development/dmu/",
                 "Chart.yaml",
                 chartAdditions + "\n",
                 true);
+
         repositoryManagement.addAll();
         repositoryManagement.commit("Added File Storage to archive project with id " + dupIdentifier);
         repositoryManagement.push();

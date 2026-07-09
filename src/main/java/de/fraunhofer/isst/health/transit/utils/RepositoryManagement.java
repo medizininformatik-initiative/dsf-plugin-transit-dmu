@@ -22,12 +22,14 @@ public class RepositoryManagement {
     private boolean withAuthorization;
     private Git git;
     private File repoPath;
+
     public RepositoryManagement(String dupId, String url, String branch, String username, String password) {
         this(dupId, url, branch);
         this.username = username;
         this.password = password;
         this.withAuthorization = true;
     }
+
     public RepositoryManagement(String dupId, String url, String branch) {
         this.url = url;
         this.branch = branch;
@@ -61,21 +63,27 @@ public class RepositoryManagement {
     public void writeFile(String prefix, String suffix, String content, boolean append) throws IOException {
         String path = git.getRepository().getDirectory().getParent() + "/" + prefix;
         LOGGER.info("Writing file " + suffix + " to path " + path + " with append = " + append);
+
         File file = new File(
                 path,
                 suffix);
+
         if (append && !FileUtils.readFileToString(file, StandardCharsets.UTF_8).endsWith("\n")) {
             content = "\n" + content;
         }
+
         FileUtils.write(file, content, StandardCharsets.UTF_8, append);
     }
+
     public void add(String pattern) throws GitAPIException {
         LOGGER.info("Adding Changes with pattern " + pattern + " to staging");
         git.add().addFilepattern(pattern).call();
     }
+
     public void addAll() throws GitAPIException {
         add(".");
     }
+
     public void commit(String message) throws GitAPIException {
         LOGGER.info("Committing changes for project " + dupIdentifier);
         git
@@ -85,6 +93,7 @@ public class RepositoryManagement {
                 .setMessage(message)
                 .call();
     }
+
     public void push() throws GitAPIException {
         LOGGER.info("Pushing changes for project " + dupIdentifier);
         PushCommand command = git.push();
@@ -94,6 +103,7 @@ public class RepositoryManagement {
         command.call();
         LOGGER.info("Changes pushed");
     }
+
     public void close() throws IOException {
         git.close();
         FileUtils.deleteDirectory(repoPath);
@@ -102,6 +112,7 @@ public class RepositoryManagement {
     public Git getGit() {
         return git;
     }
+
     private UsernamePasswordCredentialsProvider credentialsProvider() {
         return new UsernamePasswordCredentialsProvider(
                 username,
