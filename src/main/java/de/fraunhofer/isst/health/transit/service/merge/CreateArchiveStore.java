@@ -1,5 +1,6 @@
 package de.fraunhofer.isst.health.transit.service.merge;
 
+import ca.uhn.fhir.context.FhirContext;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
 import de.fraunhofer.isst.health.transit.spring.config.DmsProjectFileFhirClientConfig;
 import de.fraunhofer.isst.health.transit.spring.config.TransitVariablesConfig;
@@ -14,8 +15,10 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.hl7.fhir.r4.model.Bundle;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -28,7 +31,6 @@ public class CreateArchiveStore implements ServiceTask {
     private static final int RETRYMAXNUMBER = 15;
     private static final int TIMEOUT_S = 30;
     private static final String SERVICEPREFIX = "http://archive-";
-    private static final String UPLOADENDPOINT = "/upl/";
     private static final String HEALTHENDPOINT = "/health";
     private String dupIdentifier;
     private double size;
@@ -47,8 +49,14 @@ public class CreateArchiveStore implements ServiceTask {
         LOGGER.info("Create Archive Store start");
 
         dupIdentifier = (variables.getString(ConstantsTransit.DUPIDENTIFIER)).toLowerCase(Locale.ROOT);
+        Bundle collection = (Bundle) variables.getFhirResource(ConstantsTransit.COLLECTION_BUNDLE);
 
         nginxUrl = SERVICEPREFIX + dupIdentifier;
+
+        String file = FhirContext.forR4().newJsonParser().encodeResourceToString(collection);
+        byte[] bytes = file.getBytes(StandardCharsets.UTF_8);
+        size = Math.ceil(bytes.length * CONVERSIONMB * OVERHEAD);
+        file = null;
 
         setUpGit();
 
