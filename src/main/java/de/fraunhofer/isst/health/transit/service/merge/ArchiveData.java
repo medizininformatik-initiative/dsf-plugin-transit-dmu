@@ -20,11 +20,8 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.hl7.fhir.r4.model.*;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -34,16 +31,12 @@ import java.util.logging.Logger;
 
 public class ArchiveData implements ServiceTask {
     private static final Logger LOGGER = Logger.getLogger(ArchiveData.class.getName());
-    private static final double CONVERSIONMB = 0.000001;
-    private static final double OVERHEAD = 1.20;
     private static final int RETRYDELAYMINUTES = 1;
     private static final int RETRYMAXNUMBER = 15;
     private static final int TIMEOUT_S = 30;
-    private static final String SERVICEPREFIX = "http://archive-";
     private static final String UPLOADENDPOINT = "/upl/";
     private static final String HEALTHENDPOINT = "/health";
     private String dupIdentifier;
-    private double size;
     private String nginxUrl;
     private DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig;
     private TransitVariablesConfig transitVariablesConfig;
@@ -62,6 +55,8 @@ public class ArchiveData implements ServiceTask {
         Bundle collection = (Bundle) variables.getFhirResource(ConstantsTransit.COLLECTION_BUNDLE);
         nginxUrl = variables.getString(ConstantsTransit.ARCHIVEURL);
 
+        String file = FhirContext.forR4().newJsonParser().encodeResourceToString(collection);
+
         //Change collection to Transaction
         collection.setType(Bundle.BundleType.TRANSACTION);
         for (Bundle.BundleEntryComponent component : collection.getEntry()) {
@@ -73,9 +68,6 @@ public class ArchiveData implements ServiceTask {
         if (!collection.getEntry().isEmpty()) {
 
             String path = UPLOADENDPOINT + dupIdentifier + ".json";
-            String file = FhirContext.forR4().newJsonParser().encodeResourceToString(collection);
-            byte[] bytes = file.getBytes(StandardCharsets.UTF_8);
-            size = Math.ceil(bytes.length * CONVERSIONMB * OVERHEAD);
 
             //Setup Client-Builder
             ClientBuilder builder = ClientBuilder.newBuilder();
