@@ -97,6 +97,13 @@ public class TransitVariablesConfig
 	@Value("${eu.datamanagementunit.transit.filestorage.url:#{null}}")
 	private String fileStorageUrl;
 
+    @ProcessDocumentation(processNames = {
+            "datamanagementuniteu_transit" },
+            description = "Set access-list entries in filestorage-postgres",
+            example = "false")
+    @Value("${eu.datamanagementunit.transit.filestorage.setaccesslist:false}")
+    private boolean setAccessList;
+
 	@ProcessDocumentation(processNames = {
 			"medizininformatik-initiativede_mergeDataSharing" }, description = "To receive e-mails as DMS, set to `true`")
 	@Value("${de.medizininformatik.initiative.data.sharing.dms.email.enabled:false}")
@@ -191,4 +198,8 @@ public class TransitVariablesConfig
 	public boolean isKubernetes() {
 		return kubernetes;
 	}
+
+    public boolean getSetAccessList() {
+        return setAccessList;
+    }
 }
