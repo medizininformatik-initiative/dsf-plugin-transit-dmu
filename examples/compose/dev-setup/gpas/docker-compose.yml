@@ -1,0 +1,37 @@
+services:
+  postgresql:
+    image: postgres:17
+    container_name: gpas-postgres
+#    ports:
+#      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: root
+      TZ: Europe/Berlin
+    volumes:
+      - ./postgres_sqls:/docker-entrypoint-initdb.d
+#      - ./data/postgres:/var/lib/postgresql/data
+    command: postgres -c max_connections=100 -c shared_buffers=10GB -c effective_cache_size=20GB
+  gpas:
+    image: mosaicgreifswald/gpas:2025.2.1
+    container_name: gpas
+    ports:
+#      - "8787:8787"
+      - "8080:8080"
+      - "9990:9990"
+    env_file:
+      - ./envs/ttp_commons.env
+      - ./envs/ttp_disable_optional_deployments.env
+      - ./envs/ttp_fhir.env
+      - ./envs/ttp_gpas.env
+      - ./envs/ttp_gras.env
+      - ./envs/ttp_noti.env
+      - ./envs/wf_commons.env
+    environment:
+      TTP_DB_DBMS: postgresql
+      TTP_GPAS_DB_HOST: postgresql
+      MOS_WAIT_FOR_PORTS: postgresql:5432:120
+    depends_on:
+      - postgresql
+    volumes:
+      - ./logs:/entrypoint-wildfly-logs
+      - ./addins:/entrypoint-wildfly-addins

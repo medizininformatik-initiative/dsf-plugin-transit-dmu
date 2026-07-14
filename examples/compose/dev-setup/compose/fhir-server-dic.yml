@@ -1,0 +1,22 @@
+services:
+
+  dicfhir:
+    container_name: "dicfhir"
+    image: ghcr.io/medizininformatik-initiative/dmu-fhir-store:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9081:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker-it
+      JDK_JAVA_OPTIONS: "-XX:MaxRAMPercentage=70.0 -XX:MinRAMPercentage=70.0 -XX:InitialRAMPercentage=70.0"
+      hapi.fhir.subscription.resthook_enabled: "true"
+      hapi.fhir.allowed_bundle_types: "COLLECTION,DOCUMENT,MESSAGE,TRANSACTION"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db/dicfhir
+      SPRING_DATASOURCE_USERNAME: liquibase_user
+      SPRING_DATASOURCE_PASSWORD: NKb2D7ZCxgmhrddh4KNgCrBr49mSsqWUnQAQHgGPkYZ2k7W9VQCFevuGRFYeZg9p
+    depends_on:
+      - db
+    networks:
+      - dic-bpe-backend
