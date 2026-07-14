@@ -1,0 +1,80 @@
+services:
+
+#  dmsfhir:
+#    container_name: "dmsfhir"
+#    image: container-registry.gitlab.cc-asp.fraunhofer.de/transit/dmu-fhir-store:develop
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - "9080:8080"
+#    environment:
+#      SPRING_PROFILES_ACTIVE: docker-it
+#      JDK_JAVA_OPTIONS: "-XX:MaxRAMPercentage=70.0 -XX:MinRAMPercentage=70.0 -XX:InitialRAMPercentage=70.0"
+#      hapi.fhir.subscription.resthook_enabled: "true"
+#      hapi.fhir.allowed_bundle_types: "COLLECTION,DOCUMENT,MESSAGE,TRANSACTION"
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://db/dmsfhir
+#      SPRING_DATASOURCE_USERNAME: liquibase_user
+#      SPRING_DATASOURCE_PASSWORD: NKb2D7ZCxgmhrddh4KNgCrBr49mSsqWUnQAQHgGPkYZ2k7W9VQCFevuGRFYeZg9p
+#
+#  dmsfhir:
+#    container_name: "dmsfhir"
+#    image: hapiproject/hapi:v7.2.0
+#    restart: unless-stopped
+#    ports:
+#      - "9080:8080"
+#    environment:
+#      # --- externalDatabase equivalent ---
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://db/hapi
+#      SPRING_DATASOURCE_USERNAME: liquibase_user
+#      SPRING_DATASOURCE_PASSWORD: NKb2D7ZCxgmhrddh4KNgCrBr49mSsqWUnQAQHgGPkYZ2k7W9VQCFevuGRFYeZg9p
+#      SPRING_DATASOURCE_DRIVERCLASSNAME: org.postgresql.Driver
+#      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
+#
+#      # --- extraEnv from values.yaml ---
+#      HAPI_FHIR_SUBSCRIPTION_RESTHOOK_ENABLED: 'true'
+#      HAPI_FHIR_ALLOWED_BUNDLE_TYPES: COLLECTION,DOCUMENT,MESSAGE,TRANSACTION
+#      HAPI_FHIR_BULK_EXPORT_ENABLED: 'true'
+#      TZ: Europe/Berlin
+
+  dmsfhir:
+    image: hapiproject/hapi:latest
+    container_name: dmsfhir
+    ports:
+      - "9080:8080"
+    environment:
+      # Database connection details
+      SPRING_DATASOURCE_URL: jdbc:postgresql://dbdms:5432/hapi
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: fhir_password
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+
+      # Tell HAPI to use the Postgres Dialect
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect
+
+      # FHIR Version (R4 is the research standard)
+      HAPI_FHIR_FHIR_VERSION: R4
+
+      # Optional: Enable the web tester UI
+      HAPI_FHIR_TESTER_CONFIG_ENABLED: "true"
+    depends_on:
+      dbdms:
+        condition: service_healthy
+    networks:
+      - dms-bpe-backend
+
+  # The PostgreSQL Database
+  dbdms:
+    image: postgres:17-alpine
+    container_name: fhir-postgres-db
+    environment:
+      POSTGRES_DB: hapi
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: fhir_password
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dms-bpe-backend

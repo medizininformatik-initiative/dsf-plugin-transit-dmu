@@ -1,0 +1,655 @@
+include:
+  - path: db/db.yml
+    project_directory: db
+  - compose/fhir-server-dic.yml
+  - compose/fhir-server-dms.yml
+  - compose/fhir-store-dms.yml
+
+services:
+
+  proxy:
+    image: nginx:1.23
+    restart: "no"
+    ports:
+      - 127.0.0.1:443:443
+    secrets:
+      - localhost.chain.crt
+      - localhost.key.plain
+      - issuing_ca.crt
+      - ca_chain.crt
+    volumes:
+      - type: bind
+        source: ./proxy/conf.d
+        target: /etc/nginx/conf.d
+        read_only: true
+      - type: bind
+        source: ./proxy/nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+    networks:
+      dic-fhir-frontend:
+        ipv4_address: 192.20.0.66
+      dic-bpe-frontend:
+        ipv4_address: 192.20.0.114
+      hrp-fhir-frontend:
+        ipv4_address: 192.20.0.82
+      hrp-bpe-frontend:
+        ipv4_address: 192.20.0.130
+      dms-fhir-frontend:
+        ipv4_address: 192.20.0.98
+      dms-bpe-frontend:
+        ipv4_address: 192.20.0.146
+      internet:
+        aliases:
+          - dms
+          - dic
+          - hrp
+    environment:
+      TZ: Europe/Berlin
+
+  dms-fhir:
+    image: ghcr.io/datasharingframework/fhir:2.1.0
+    restart: "no"
+    ports:
+      - 127.0.0.1:5002:5002
+      - 9595:8080
+    secrets:
+      - db_liquibase.password
+      - db_dms_fhir_user.password
+      - db_dms_fhir_user_permanent_delete.password
+      - ca_chain.crt
+      - app_dms_client_certificate.pem
+      - app_dms_client_certificate_private_key.pem
+      - app_dms_client_certificate_private_key.pem.password
+    volumes:
+      - type: bind
+        source: ./dms/fhir/conf/bundle.xml
+        target: /opt/fhir/conf/bundle.xml
+      - type: bind
+        source: ./dms/fhir/log
+        target: /opt/fhir/log
+    environment:
+      TZ: Europe/Berlin
+      EXTRA_JVM_ARGS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5002
+      JETTY_CLIENT_TRUSTSTORE_PEM: /run/secrets/ca_chain.crt
+      DEV_DSF_FHIR_DB_LIQUIBASE_PASSWORD_FILE: /run/secrets/db_liquibase.password
+      DEV_DSF_FHIR_DB_USER_PASSWORD_FILE: /run/secrets/db_dms_fhir_user.password
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_PASSWORD_FILE: /run/secrets/db_dms_fhir_user_permanent_delete.password
+      DEV_DSF_FHIR_CLIENT_TRUST_SERVER_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE: /run/secrets/app_dms_client_certificate.pem
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY: /run/secrets/app_dms_client_certificate_private_key.pem
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY_PASSWORD_FILE: /run/secrets/app_dms_client_certificate_private_key.pem.password
+      DEV_DSF_FHIR_DB_URL: jdbc:postgresql://db/dms_fhir
+      DEV_DSF_FHIR_DB_USER_GROUP: dms_fhir_users
+      DEV_DSF_FHIR_DB_USER_USERNAME: dms_fhir_server_user
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_GROUP: dms_fhir_permanent_delete_users
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_USERNAME: dms_fhir_server_permanent_delete_user
+      DEV_DSF_FHIR_SERVER_BASE_URL: https://dms/fhir
+      DEV_DSF_FHIR_SERVER_ORGANIZATION_IDENTIFIER_VALUE: dms.dsf.test
+      DEV_DSF_FHIR_SERVER_ORGANIZATION_THUMBPRINT: ${DMS_BUNDLE_USER_THUMBPRINT}
+      DEV_DSF_SERVER_AUTH_TRUST_CLIENT_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_FHIR_SERVER_ROLECONFIG: |
+        - webbrowser_test_user:
+            thumbprint: ${WEBBROWSER_TEST_USER_THUMBPRINT}
+            token-role: admin
+            dsf-role:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - SEARCH
+              - HISTORY
+              - PERMANENT_DELETE
+            practitioner-role:
+              - http://dsf.dev/fhir/CodeSystem/practitioner-role|DSF_ADMIN
+
+    networks:
+      dms-fhir-frontend:
+        ipv4_address: 192.20.0.99
+      dms-fhir-backend:
+      internet:
+    depends_on:
+      - db
+      - proxy
+
+  dms-bpe:
+    image: ghcr.io/datasharingframework/bpe:2.1.0
+    restart: "no"
+    ports:
+      - 127.0.0.1:5005:5005
+    secrets:
+      - db_liquibase.password
+      - db_dms_bpe_user.password
+      - db_dms_bpe_user_engine.password
+      - ca_chain.crt
+      - app_dms_client_certificate.pem
+      - app_dms_client_certificate_private_key.pem
+      - app_dms_client_certificate_private_key.pem.password
+      - dms_public_key.pem
+      - dms_private_key.pem
+    volumes:
+      - type: bind
+        source: ./dms/bpe/plugin
+        target: /opt/bpe/plugin
+        read_only: true
+      - type: bind
+        source: ./dms/bpe/process
+        target: /opt/bpe/process
+        read_only: true
+      - type: bind
+        source: ./dms/bpe/log
+        target: /opt/bpe/log
+      - type: bind
+        source: ./dms/bpe/last_event
+        target: /opt/bpe/last_event
+      - type: bind
+        source: ./data
+        target: /data
+    environment:
+      TZ: Europe/Berlin
+      EXTRA_JVM_ARGS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      DEV_DSF_BPE_DB_LIQUIBASE_PASSWORD_FILE: /run/secrets/db_liquibase.password
+      DEV_DSF_BPE_DB_USER_PASSWORD_FILE: /run/secrets/db_dms_bpe_user.password
+      DEV_DSF_BPE_DB_USER_ENGINE_PASSWORD_FILE: /run/secrets/db_dms_bpe_user_engine.password
+      DEV_DSF_BPE_FHIR_CLIENT_TRUST_SERVER_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE: /run/secrets/app_dms_client_certificate.pem
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY: /run/secrets/app_dms_client_certificate_private_key.pem
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY_PASSWORD_FILE: /run/secrets/app_dms_client_certificate_private_key.pem.password
+      DEV_DSF_BPE_DB_URL: jdbc:postgresql://db/dms_bpe
+      DEV_DSF_BPE_DB_USER_GROUP: dms_bpe_users
+      DEV_DSF_BPE_DB_USER_USERNAME: dms_bpe_server_user
+      DEV_DSF_BPE_DB_USER_ENGINE_GROUP: dms_engine_users
+      DEV_DSF_BPE_DB_USER_ENGINE_USERNAME: dms_engine_server_user
+      DEV_DSF_BPE_FHIR_SERVER_BASE_URL: https://dms/fhir
+      DEV_DSF_BPE_SERVER_BASE_URL: https://dms/bpe
+      DEV_DSF_BPE_SERVER_UI_THEME: dev
+      DEV_DSF_SERVER_AUTH_TRUST_CLIENT_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_BPE_PROCESS_EXCLUDED: medizininformatik-initiativede_coordinateDataSharing|1.1,medizininformatik-initiativede_executeDataSharing|1.1
+      DE_MEDIZININFORMATIK_INITIATIVE_DATA_SHARING_DMS_FHIR_SERVER_BASE_URL: 'http://dmsfhir:8080/fhir'
+      DE_MEDIZININFORMATIK_INITIATIVE_DMS_PUBLIC_KEY: /run/secrets/dms_public_key.pem
+      DE_MEDIZININFORMATIK_INITIATIVE_DMS_PRIVATE_KEY: /run/secrets/dms_private_key.pem
+      EU_DATAMANAGEMENTUNIT_TRANSIT_PROJECTFILE_FHIR_SERVER_BASE_URL: "http://projectfile:8080/fhir"
+      EU_DATAMANAGEMENTUNIT_TRANSIT_GPAS_URL: "http://gpas:8080/gpas"
+      EU_DATAMANAGEMENTUNIT_TRANSIT_FILESTORAGE_PATH: "/data"
+      EU_DATAMANAGEMENTUNIT_TRANSIT_FILESTORAGE_URL: "http://filestorage/dl/"
+      DEV_DSF_BPE_FHIR_CLIENT_CONNECTIONS_CONFIG: |
+        projectfile:
+          base-url: http://projectfile:8080/fhir
+      DEV_DSF_BPE_SERVER_ROLECONFIG: |
+        - webbrowser_test_user:
+            thumbprint: ${WEBBROWSER_TEST_USER_THUMBPRINT}
+            token-role: admin
+            dsf-role:
+              - ADMIN
+
+    networks:
+      dms-bpe-frontend:
+        ipv4_address: 192.20.0.147
+      dms-bpe-backend:
+      internet:
+    depends_on:
+      - db
+      - dms-fhir
+      - gpas
+
+  dic-fhir:
+    image: ghcr.io/datasharingframework/fhir:2.1.0
+    restart: "no"
+    ports:
+      - 127.0.0.1:5000:5000
+    secrets:
+      - db_liquibase.password
+      - db_dic_fhir_user.password
+      - db_dic_fhir_user_permanent_delete.password
+      - ca_chain.crt
+      - app_dic_client_certificate.pem
+      - app_dic_client_certificate_private_key.pem
+      - app_dic_client_certificate_private_key.pem.password
+    volumes:
+      - type: bind
+        source: ./dic/fhir/conf/bundle.xml
+        target: /opt/fhir/conf/bundle.xml
+      - type: bind
+        source: ./dic/fhir/log
+        target: /opt/fhir/log
+    environment:
+      TZ: Europe/Berlin
+      EXTRA_JVM_ARGS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5000
+      DEV_DSF_FHIR_DB_LIQUIBASE_PASSWORD_FILE: /run/secrets/db_liquibase.password
+      DEV_DSF_FHIR_DB_USER_PASSWORD_FILE: /run/secrets/db_dic_fhir_user.password
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_PASSWORD_FILE: /run/secrets/db_dic_fhir_user_permanent_delete.password
+      DEV_DSF_FHIR_CLIENT_TRUST_SERVER_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE: /run/secrets/app_dic_client_certificate.pem
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY: /run/secrets/app_dic_client_certificate_private_key.pem
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY_PASSWORD_FILE: /run/secrets/app_dic_client_certificate_private_key.pem.password
+      DEV_DSF_FHIR_DB_URL: jdbc:postgresql://db/dic_fhir
+      DEV_DSF_FHIR_DB_USER_GROUP: dic_fhir_users
+      DEV_DSF_FHIR_DB_USER_USERNAME: dic_fhir_server_user
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_GROUP: dic_fhir_permanent_delete_users
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_USERNAME: dic_fhir_server_permanent_delete_user
+      DEV_DSF_FHIR_SERVER_BASE_URL: https://dic/fhir
+      DEV_DSF_FHIR_SERVER_ORGANIZATION_IDENTIFIER_VALUE: dic.dsf.test
+      DEV_DSF_FHIR_SERVER_ORGANIZATION_THUMBPRINT: ${DIC_BUNDLE_USER_THUMBPRINT}
+      DEV_DSF_SERVER_AUTH_TRUST_CLIENT_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_FHIR_SERVER_ROLECONFIG: |
+        - webbrowser_test_user:
+            thumbprint: ${WEBBROWSER_TEST_USER_THUMBPRINT}
+            token-role: admin
+            dsf-role:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - SEARCH
+              - HISTORY
+              - PERMANENT_DELETE
+            practitioner-role:
+              - http://dsf.dev/fhir/CodeSystem/practitioner-role|DSF_ADMIN
+        - tutorial_role:
+            token-role: tutorial
+            dsf-role:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - SEARCH
+              - HISTORY
+            practitioner-role:
+              - http://dsf.dev/fhir/CodeSystem/practitioner-role|DSF_ADMIN
+
+    networks:
+      dic-fhir-frontend:
+        ipv4_address: 192.20.0.67
+      dic-fhir-backend:
+      internet:
+    depends_on:
+      - db
+      - proxy
+      
+  dic-bpe:
+    image: ghcr.io/datasharingframework/bpe:2.1.0
+    restart: "no"
+    ports:
+      - 127.0.0.1:5003:5003
+    secrets:
+      - db_liquibase.password
+      - db_dic_bpe_user.password
+      - db_dic_bpe_user_engine.password
+      - ca_chain.crt
+      - app_dic_client_certificate.pem
+      - app_dic_client_certificate_private_key.pem
+      - app_dic_client_certificate_private_key.pem.password
+    volumes:
+      - type: bind
+        source: ./dic/bpe/plugin
+        target: /opt/bpe/plugin
+        read_only: true
+      - type: bind
+        source: ./dic/bpe/process
+        target: /opt/bpe/process
+        read_only: true
+      - type: bind
+        source: ./dic/bpe/log
+        target: /opt/bpe/log
+      - type: bind
+        source: ./dic/bpe/last_event
+        target: /opt/bpe/last_event
+    environment:
+      TZ: Europe/Berlin
+      EXTRA_JVM_ARGS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5003
+      DEV_DSF_BPE_DB_LIQUIBASE_PASSWORD_FILE: /run/secrets/db_liquibase.password
+      DEV_DSF_BPE_DB_USER_PASSWORD_FILE: /run/secrets/db_dic_bpe_user.password
+      DEV_DSF_BPE_DB_USER_ENGINE_PASSWORD_FILE: /run/secrets/db_dic_bpe_user_engine.password
+      DEV_DSF_BPE_FHIR_CLIENT_TRUST_SERVER_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE: /run/secrets/app_dic_client_certificate.pem
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY: /run/secrets/app_dic_client_certificate_private_key.pem
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY_PASSWORD_FILE: /run/secrets/app_dic_client_certificate_private_key.pem.password
+      DEV_DSF_BPE_DB_URL: jdbc:postgresql://db/dic_bpe
+      DEV_DSF_BPE_DB_USER_GROUP: dic_bpe_users
+      DEV_DSF_BPE_DB_USER_USERNAME: dic_bpe_server_user
+      DEV_DSF_BPE_DB_USER_ENGINE_GROUP: dic_engine_users
+      DEV_DSF_BPE_DB_USER_ENGINE_USERNAME: dic_engine_server_user
+      DEV_DSF_BPE_FHIR_SERVER_BASE_URL: https://dic/fhir
+      DEV_DSF_BPE_SERVER_BASE_URL: https://dic/bpe
+      DEV_DSF_BPE_SERVER_UI_THEME: dev
+      DEV_DSF_SERVER_AUTH_TRUST_CLIENT_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_BPE_PROCESS_EXCLUDED: medizininformatik-initiativede_coordinateDataSharing|1.1,medizininformatik-initiativede_mergeDataSharing|1.1
+      DE_MEDIZININFORMATIK_INITIATIVE_DATA_SHARING_DIC_FHIR_SERVER_BASE_URL: 'http://dicfhir:8080/fhir'
+      DEV_DSF_BPE_SERVER_ROLECONFIG: |
+        - webbrowser_test_user:
+            thumbprint: ${WEBBROWSER_TEST_USER_THUMBPRINT}
+            token-role: admin
+            dsf-role:
+              - ADMIN
+
+    networks:
+      dic-bpe-frontend:
+        ipv4_address: 192.20.0.115
+      dic-bpe-backend:
+      internet:
+    depends_on:
+      - db
+      - dic-fhir
+      
+
+  hrp-fhir:
+    image: ghcr.io/datasharingframework/fhir:2.1.0
+    restart: "no"
+    ports:
+      - 127.0.0.1:5001:5001
+    secrets:
+      - db_liquibase.password
+      - db_hrp_fhir_user.password
+      - db_hrp_fhir_user_permanent_delete.password
+      - ca_chain.crt
+      - app_hrp_client_certificate.pem
+      - app_hrp_client_certificate_private_key.pem
+      - app_hrp_client_certificate_private_key.pem.password
+    volumes:
+      - type: bind
+        source: ./hrp/fhir/conf/bundle.xml
+        target: /opt/fhir/conf/bundle.xml
+      - type: bind
+        source: ./hrp/fhir/log
+        target: /opt/fhir/log
+    environment:
+      TZ: Europe/Berlin
+      EXTRA_JVM_ARGS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5001
+      DEV_DSF_FHIR_DB_LIQUIBASE_PASSWORD_FILE: /run/secrets/db_liquibase.password
+      DEV_DSF_FHIR_DB_USER_PASSWORD_FILE: /run/secrets/db_hrp_fhir_user.password
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_PASSWORD_FILE: /run/secrets/db_hrp_fhir_user_permanent_delete.password
+      DEV_DSF_FHIR_CLIENT_TRUST_SERVER_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE: /run/secrets/app_hrp_client_certificate.pem
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY: /run/secrets/app_hrp_client_certificate_private_key.pem
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY_PASSWORD_FILE: /run/secrets/app_hrp_client_certificate_private_key.pem.password
+      DEV_DSF_FHIR_DB_URL: jdbc:postgresql://db/hrp_fhir
+      DEV_DSF_FHIR_DB_USER_GROUP: hrp_fhir_users
+      DEV_DSF_FHIR_DB_USER_USERNAME: hrp_fhir_server_user
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_GROUP: hrp_fhir_permanent_delete_users
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_USERNAME: hrp_fhir_server_permanent_delete_user
+      DEV_DSF_FHIR_SERVER_BASE_URL: https://hrp/fhir
+      DEV_DSF_FHIR_SERVER_ORGANIZATION_IDENTIFIER_VALUE: hrp.dsf.test
+      DEV_DSF_FHIR_SERVER_ORGANIZATION_THUMBPRINT: ${HRP_BUNDLE_USER_THUMBPRINT}
+      DEV_DSF_SERVER_AUTH_TRUST_CLIENT_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_FHIR_SERVER_ROLECONFIG: |
+        - webbrowser_test_user:
+            thumbprint: ${WEBBROWSER_TEST_USER_THUMBPRINT}
+            token-role: admin
+            dsf-role:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - SEARCH
+              - HISTORY
+              - PERMANENT_DELETE
+            practitioner-role:
+              - http://dsf.dev/fhir/CodeSystem/practitioner-role|DSF_ADMIN
+    networks:
+      hrp-fhir-frontend:
+        ipv4_address: 192.20.0.83
+      hrp-fhir-backend:
+      internet:
+    depends_on:
+      - db
+      - proxy
+      
+
+  hrp-bpe:
+    image: ghcr.io/datasharingframework/bpe:2.1.0
+    restart: "no"
+    ports:
+      - 127.0.0.1:5004:5004
+    secrets:
+      - db_liquibase.password
+      - db_hrp_bpe_user.password
+      - db_hrp_bpe_user_engine.password
+      - ca_chain.crt
+      - app_hrp_client_certificate.pem
+      - app_hrp_client_certificate_private_key.pem
+      - app_hrp_client_certificate_private_key.pem.password
+    volumes:
+      - type: bind
+        source: ./hrp/bpe/plugin
+        target: /opt/bpe/plugin
+        read_only: true
+      - type: bind
+        source: ./hrp/bpe/process
+        target: /opt/bpe/process
+        read_only: true
+      - type: bind
+        source: ./hrp/bpe/log
+        target: /opt/bpe/log
+      - type: bind
+        source: ./hrp/bpe/last_event
+        target: /opt/bpe/last_event
+    environment:
+      TZ: Europe/Berlin
+      EXTRA_JVM_ARGS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5004
+      DEV_DSF_BPE_DB_LIQUIBASE_PASSWORD_FILE: /run/secrets/db_liquibase.password
+      DEV_DSF_BPE_DB_USER_PASSWORD_FILE: /run/secrets/db_hrp_bpe_user.password
+      DEV_DSF_BPE_DB_USER_ENGINE_PASSWORD_FILE: /run/secrets/db_hrp_bpe_user_engine.password
+      DEV_DSF_BPE_FHIR_CLIENT_TRUST_SERVER_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE: /run/secrets/app_hrp_client_certificate.pem
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY: /run/secrets/app_hrp_client_certificate_private_key.pem
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY_PASSWORD_FILE: /run/secrets/app_hrp_client_certificate_private_key.pem.password
+      DEV_DSF_BPE_DB_URL: jdbc:postgresql://db/hrp_bpe
+      DEV_DSF_BPE_DB_USER_GROUP: hrp_bpe_users
+      DEV_DSF_BPE_DB_USER_USERNAME: hrp_bpe_server_user
+      DEV_DSF_BPE_DB_USER_ENGINE_GROUP: hrp_engine_users
+      DEV_DSF_BPE_DB_USER_ENGINE_USERNAME: hrp_engine_server_user
+      DEV_DSF_BPE_FHIR_SERVER_BASE_URL: https://hrp/fhir
+      DEV_DSF_BPE_SERVER_BASE_URL: https://hrp/bpe
+      DEV_DSF_BPE_SERVER_UI_THEME: dev
+      DEV_DSF_SERVER_AUTH_TRUST_CLIENT_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_BPE_PROCESS_EXCLUDED: medizininformatik-initiativede_mergeDataSharing|1.1,medizininformatik-initiativede_executeDataSharing|1.1
+      DEV_DSF_BPE_SERVER_ROLECONFIG: |
+        - webbrowser_test_user:
+            thumbprint: ${WEBBROWSER_TEST_USER_THUMBPRINT}
+            token-role: admin
+            dsf-role:
+              - ADMIN
+
+    networks:
+      hrp-bpe-frontend:
+        ipv4_address: 192.20.0.131
+      hrp-bpe-backend:
+      internet:
+    depends_on:
+      - db
+      - hrp-fhir
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    #    ports:
+    #      - "5432:5432"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      TZ: Europe/Berlin
+    volumes:
+      - ./gpas/sqls:/docker-entrypoint-initdb.d
+    #      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      dms-bpe-backend:
+
+  gpas:
+    image: mosaicgreifswald/gpas:2024.3.0
+    container_name: gpas
+    ports:
+      #      - "8787:8787"
+      - "8080:8080"
+      - "9990:9990"
+    environment:
+      WF_ADMIN_PASS: admin
+      WF_HEALTHCHECK_URLS: http://localhost:8080/
+    depends_on:
+      - mysql
+    volumes:
+      - ./gpas/logs:/entrypoint-wildfly-logs
+      - ./gpas/addins:/entrypoint-wildfly-addins
+    networks:
+      dms-bpe-backend:
+      
+  postgresdmsakte:
+    container_name: "postgresdmsakte"
+    image: "postgres:18"
+    environment:
+      POSTGRES_DB: "projects"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      TZ: Europe/Berlin
+    networks:
+      dms-bpe-backend:
+
+  projectfile:
+    container_name: "projectfile"
+    image: ghcr.io/medizininformatik-initiative/dmu-fhir-store:latest
+    ports:
+      - "9181:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker-it
+      JDK_JAVA_OPTIONS: "-XX:MaxRAMPercentage=70.0 -XX:MinRAMPercentage=70.0 -XX:InitialRAMPercentage=70.0"
+      hapi.fhir.subscription.resthook_enabled: "true"
+      hapi.fhir.allowed_bundle_types: "COLLECTION,DOCUMENT,MESSAGE,TRANSACTION"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db/projectfile
+      SPRING_DATASOURCE_USERNAME: liquibase_user
+      SPRING_DATASOURCE_PASSWORD: NKb2D7ZCxgmhrddh4KNgCrBr49mSsqWUnQAQHgGPkYZ2k7W9VQCFevuGRFYeZg9p
+    depends_on:
+      - db
+    networks:
+      dms-bpe-backend:
+
+  filestorage:
+    container_name: "filestorage"
+    image: ghcr.io/medizininformatik-initiative/dmu-file-storage:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./data:/usr/share/nginx/html
+    networks:
+      dms-bpe-backend:
+
+
+secrets:
+  localhost.chain.crt:
+    file: ./secrets/localhost.chain.crt
+  localhost.key.plain:
+    file: ./secrets/localhost.key.plain
+  issuing_ca.crt:
+    file: ./secrets/issuing_ca.crt
+
+  db_liquibase.password:
+    file: ./secrets/db_liquibase.password
+
+  db_dic_fhir_user.password:
+    file: ./secrets/db_dic_fhir_user.password
+  db_dic_fhir_user_permanent_delete.password:
+    file: ./secrets/db_dic_fhir_user_permanent_delete.password
+  db_dic_bpe_user.password:
+    file: ./secrets/db_dic_bpe_user.password
+  db_dic_bpe_user_engine.password:
+    file: ./secrets/db_dic_bpe_user_engine.password
+
+  db_hrp_fhir_user.password:
+    file: ./secrets/db_hrp_fhir_user.password
+  db_hrp_fhir_user_permanent_delete.password:
+    file: ./secrets/db_hrp_fhir_user_permanent_delete.password
+  db_hrp_bpe_user.password:
+    file: ./secrets/db_hrp_bpe_user.password
+  db_hrp_bpe_user_engine.password:
+    file: ./secrets/db_hrp_bpe_user_engine.password
+
+  db_dms_fhir_user.password:
+    file: ./secrets/db_dms_fhir_user.password
+  db_dms_fhir_user_permanent_delete.password:
+    file: ./secrets/db_dms_fhir_user_permanent_delete.password
+  db_dms_bpe_user.password:
+    file: ./secrets/db_dms_bpe_user.password
+  db_dms_bpe_user_engine.password:
+    file: ./secrets/db_dms_bpe_user_engine.password
+
+  ca_chain.crt:
+    file: ./secrets/ca_chain.crt
+
+  app_dic_client_certificate.pem:
+    file: ./secrets/app_dic_client_certificate.crt
+  app_dic_client_certificate_private_key.pem:
+    file: ./secrets/app_dic_client_certificate.key
+  app_dic_client_certificate_private_key.pem.password:
+    file: ./secrets/app_client_certificate_private_key.pem.password
+
+  app_hrp_client_certificate.pem:
+    file: ./secrets/app_hrp_client_certificate.crt
+  app_hrp_client_certificate_private_key.pem:
+    file: ./secrets/app_hrp_client_certificate.key
+  app_hrp_client_certificate_private_key.pem.password:
+    file: ./secrets/app_client_certificate_private_key.pem.password
+
+  app_dms_client_certificate.pem:
+    file: ./secrets/app_dms_client_certificate.crt
+  app_dms_client_certificate_private_key.pem:
+    file: ./secrets/app_dms_client_certificate.key
+  app_dms_client_certificate_private_key.pem.password:
+    file: ./secrets/app_client_certificate_private_key.pem.password
+
+  dms_public_key.pem:
+    file: ./secrets/dms_public_key.pem
+  dms_private_key.pem:
+    file: ./secrets/dms_private_key.pem
+
+#  artifactory.user:
+#    file: ./secrets/artifactory.user
+#  artifactory.password:
+#    file: ./secrets/artifactory.password
+
+networks:
+  internet:
+  dic-fhir-frontend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.20.0.64/28
+  dic-fhir-backend:
+  dic-bpe-frontend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.20.0.112/28
+  dic-bpe-backend:
+  hrp-fhir-frontend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.20.0.80/28
+  hrp-fhir-backend:
+  hrp-bpe-frontend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.20.0.128/28
+  hrp-bpe-backend:
+  dms-fhir-frontend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.20.0.96/28
+  dms-fhir-backend:
+  dms-bpe-frontend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.20.0.144/28
+  dms-bpe-backend:
+  db:
+
+
+volumes:
+  db-data:
+    name: dsf-transit-tutorial-db
