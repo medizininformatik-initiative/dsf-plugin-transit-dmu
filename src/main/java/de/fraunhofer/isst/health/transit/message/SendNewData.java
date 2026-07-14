@@ -53,17 +53,12 @@ public class SendNewData implements MessageSendTask
                 .setCode(CODESYSTEM_DMU_VALUE_DOCUMENT_REFERENCE);
         documentReferenceParameter.setValue(new StringType(documentReferenceValue));
 
-        Task.ParameterComponent inputDataSetReference = new Task.ParameterComponent();
-        inputDataSetReference.getType().addCoding().setSystem(CODESYSTEM_DMU_TOOLS)
-                .setCode(CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_REFERENCE);
-        inputDataSetReference.setValue(new StringType(documentReference.getContentFirstRep().getAttachment().getUrl()));
-
         Task.ParameterComponent inputDiz = new Task.ParameterComponent();
         inputDiz.getType().addCoding().setSystem(CODESYSTEM_DMU_TOOLS)
                 .setCode(CODESYSTEM_DMU_VALUE_DIZ);
         inputDiz.setValue(new StringType(dizId));
 
-        return Stream.of(documentReferenceParameter, inputDataSetReference, inputDiz).toList();
+        return Stream.of(documentReferenceParameter, inputDiz).toList();
     }
 
     /*

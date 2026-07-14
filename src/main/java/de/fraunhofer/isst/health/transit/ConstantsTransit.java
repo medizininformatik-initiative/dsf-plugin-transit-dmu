@@ -12,7 +12,8 @@ public interface ConstantsTransit
 
 	String PROCESS_NAME_FULL_TRANSIT_TRIGGER = PROCESS_TRANSIT_NAME_BASE + PROCESS_NAME_TRANSIT_TRIGGER;
 
-	String EXTENSION_URL_DIC_IDENTIFIER = "http://medizininformatik-initiative.de/fhir/Extension/dic-identifier";
+	String EXTENSION_URL_DIC_IDENTIFIER = "http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier";
+	String EXTENSION_LIST_ENTRY_MIMETYPE = "http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-list-entry-item-mimetype";
 
 	String BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER = "projectIdentifier";
 	String BPMN_EXECUTION_VARIABLE_CONTRACT_URL = "contractUrl";

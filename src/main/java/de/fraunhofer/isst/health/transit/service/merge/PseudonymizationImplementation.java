@@ -3,6 +3,7 @@ package de.fraunhofer.isst.health.transit.service.merge;
 import ca.uhn.fhir.context.FhirContext;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
 import de.fraunhofer.isst.health.transit.spring.config.DmsFhirClientConfig;
+import de.fraunhofer.isst.health.transit.utils.DataResource;
 import de.fraunhofer.isst.health.transit.utils.HashIDsUtil;
 import de.fraunhofer.isst.health.transit.utils.RemoveIdentifierUtil;
 import de.fraunhofer.isst.health.transit.utils.gpas.GpasManager;
@@ -12,15 +13,19 @@ import de.fraunhofer.isst.health.transit.utils.gpas.domain.DomainOutDTO;
 import de.fraunhofer.isst.health.transit.utils.gpas.psn.GetOrCreatePseudonymForListResponse;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.*;
 
@@ -38,7 +43,7 @@ public class PseudonymizationImplementation implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi processPluginApi, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         String dizId = variables.getString(ConstantsTransit.CURRENTDIZID);
         String bundleID = variables.getString(ConstantsTransit.BUNDLEID
                 + ConstantsTransit.DIZSEPERATOR
@@ -50,44 +55,61 @@ public class PseudonymizationImplementation implements ServiceTask {
                 + ConstantsTransit.DIZSEPERATOR
                 + dizId);
 
-        Binary binary = variables.getFhirResource(BINARY);
-        Bundle bundle = variables.getFhirResource(BUNDLE);
+        List<Resource> resources = variables.getFhirResourceList(BUNDLE);
 
         String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
         boolean hashIDs = variables.getBoolean(ConstantsTransit.HASH_IDS);
         boolean removeIdentifier = variables.getBoolean(ConstantsTransit.REMOVE_IDENTIFIER);
+        List<Resource> pseud = new ArrayList<>();
+        for(Resource resource: resources){
+            if (resource instanceof ListResource list)
+                pseud.add(binaryPseudonymization(api, list, dupIdentifier, hashIDs, removeIdentifier));
+            else if (resource instanceof Bundle bundle)
+                pseud.add(bundlePseudonymization(bundle, dupIdentifier, hashIDs, removeIdentifier));
+            else
+                throw new RuntimeException(
+                        "Expected resource type Binary or List, got '" + resource.getResourceType().name() + "'");
 
-        LOGGER.log(Level.INFO, "Start Pseudonymization of Data Recieved for Project: "+dupIdentifier);
-//        Downloader downloader = new Downloader(this.dmsFhirClientConfig.getFhirStoreBaseUrl());
-
-//        String documentReference = downloader.getResourceFromInbox("DocumentReference", documentID);
-        String bundleRaw;
-        String binaryRaw;
-
-        if (!Objects.equals(bundleID, "NA")) {
-
-            bundlePseudonymization(bundle, dupIdentifier, hashIDs, removeIdentifier);
-
-            //Set Source to Transit to prevent triggering the Process again when updating Bundle to Inbox
-            bundle.getMeta().setSource("Transit");
-
-            //Update Bundle on FHIR-Inbox
-            variables.setFhirResource(BUNDLE, bundle);
-        } else {
-
-            binaryPseudonymization(binary, dupIdentifier, hashIDs, removeIdentifier);
-
-            //Set Source to Transit to prevent triggering the Process again when updating Binary to Inbox
-            binary.getMeta().setSource("Transit");
-
-            //Update Binary on FHIR-Inbox
-            variables.setFhirResource(BINARY, binary);
         }
+
+       variables.setFhirResourceList(BUNDLE, pseud);
+//
+////        Binary binary = variables.getFhirResource(BINARY);
+////        Bundle bundle = variables.getFhirResource(BUNDLE);
+//
+//
+//
+//        LOGGER.log(Level.INFO, "Start Pseudonymization of Data Recieved for Project: "+dupIdentifier);
+////        Downloader downloader = new Downloader(this.dmsFhirClientConfig.getFhirStoreBaseUrl());
+//
+////        String documentReference = downloader.getResourceFromInbox("DocumentReference", documentID);
+//        String bundleRaw;
+//        String binaryRaw;
+//
+//        if (!Objects.equals(bundleID, "NA")) {
+//
+//            bundlePseudonymization(bundle, dupIdentifier, hashIDs, removeIdentifier);
+//
+//            //Set Source to Transit to prevent triggering the Process again when updating Bundle to Inbox
+//            bundle.getMeta().setSource("Transit");
+//
+//            //Update Bundle on FHIR-Inbox
+//            variables.setFhirResource(BUNDLE, bundle);
+//        } else {
+//
+//            binaryPseudonymization(processPluginApi, binary, dupIdentifier, hashIDs, removeIdentifier);
+//
+//            //Set Source to Transit to prevent triggering the Process again when updating Binary to Inbox
+//            binary.getMeta().setSource("Transit");
+//
+//            //Update Binary on FHIR-Inbox
+//            variables.setFhirResource(BINARY, binary);
+//        }
 
         LOGGER.log(Level.INFO, "Finished Pseudonymization of Data");
     }
 
-    private void bundlePseudonymization(Bundle bundle, String dupIdentifier, boolean hashIDs, boolean removeIdentifier) {
+    private Resource bundlePseudonymization(Bundle bundle, String dupIdentifier, boolean hashIDs, boolean removeIdentifier) {
         Set<String> patientIds = extractPatientIds(bundle);
         Map<String, String> idMap = getPseudForPatients(patientIds, dupIdentifier);
         replacePatientReferences(bundle, idMap);
@@ -98,48 +120,73 @@ public class PseudonymizationImplementation implements ServiceTask {
         if (removeIdentifier) {
             RemoveIdentifierUtil.removeIdentifier(bundle);
         }
+        return bundle;
     }
 
-    private void binaryPseudonymization(Binary binary, String dupIdentifier, boolean hashIDs, boolean removeIdentifier) {
-        String payload = new String(binary.getData(), StandardCharsets.UTF_8);
+    private Resource binaryPseudonymization(ProcessPluginApi api, ListResource list, String dupIdentifier, boolean hashIDs, boolean removeIdentifier) {
 
-        //Create array of Bundles from NDJSON
-        String[] payloadArray = payload.split("\\r?\\n");
-        ArrayList<Bundle> bundleArray = new ArrayList<>();
+        ListResource.ListEntryComponent item = list.getEntry().stream().filter(ListResource.ListEntryComponent::hasItem)
+                .filter(e -> e.hasExtension(ConstantsTransit.EXTENSION_LIST_ENTRY_MIMETYPE)).findFirst().get();
 
-        for (String jsonBundle : payloadArray) {
-            if (jsonBundle.startsWith(NDJSON_WRAPPER)) {
-                jsonBundle = StringUtils.removeStart(jsonBundle, NDJSON_WRAPPER);
-                jsonBundle = jsonBundle.substring(0, jsonBundle.length() - 1);
+
+        IdType url = (IdType) item.getItem().getReferenceElement();
+        DsfClient client = api.getDsfClientProvider().getByEndpointUrl(url.getBaseUrl());
+        String mimeType = getMimeType(item);
+
+        Binary binary;
+        try (InputStream b = readBinaryResource(client, url.getIdPart(),  url.getVersionIdPart()))
+        {
+            binary = new Binary().setData(b.readAllBytes()).setContentType(mimeType);
+        }
+        catch (Exception exception)
+        {
+            throw new RuntimeException("Downloading attachment failed - " + exception.getMessage(), exception);
+        }
+
+
+        if (mimeType.equals("application/x-ndjson")){
+            String payload = new String(binary.getData(), StandardCharsets.UTF_8);
+
+            //Create array of Bundles from NDJSON
+            String[] payloadArray = payload.split("\\r?\\n");
+            ArrayList<Bundle> bundleArray = new ArrayList<>();
+
+            for (String jsonBundle : payloadArray) {
+                if (jsonBundle.startsWith(NDJSON_WRAPPER)) {
+                    jsonBundle = StringUtils.removeStart(jsonBundle, NDJSON_WRAPPER);
+                    jsonBundle = jsonBundle.substring(0, jsonBundle.length() - 1);
+                }
+                bundleArray.add(fhirContext.newJsonParser().parseResource(Bundle.class, jsonBundle));
             }
-            bundleArray.add(fhirContext.newJsonParser().parseResource(Bundle.class, jsonBundle));
-        }
 
-        //pseudonymize all Bundles in Array
-        Set<String> patientIds = new HashSet<>();
-        bundleArray.forEach(entry -> patientIds.addAll(extractPatientIds(entry)));
+            //pseudonymize all Bundles in Array
+            Set<String> patientIds = new HashSet<>();
+            bundleArray.forEach(entry -> patientIds.addAll(extractPatientIds(entry)));
 
-        Map<String, String> idMap = getPseudForPatients(patientIds, dupIdentifier);
-        bundleArray.forEach(entry -> replacePatientReferences(entry, idMap));
+            Map<String, String> idMap = getPseudForPatients(patientIds, dupIdentifier);
+            bundleArray.forEach(entry -> replacePatientReferences(entry, idMap));
 
-        if (hashIDs) {
-            String salt = getOrCreateSaltString(dupIdentifier);
-            for (Bundle bundle : bundleArray) {
-                HashIDsUtil.hashIDs(bundle, salt);
+            if (hashIDs) {
+                String salt = getOrCreateSaltString(dupIdentifier);
+                for (Bundle bundle : bundleArray) {
+                    HashIDsUtil.hashIDs(bundle, salt);
+                }
             }
-        }
-        if (removeIdentifier) {
-            bundleArray.forEach(RemoveIdentifierUtil::removeIdentifier);
+            if (removeIdentifier) {
+                bundleArray.forEach(RemoveIdentifierUtil::removeIdentifier);
+            }
+
+            //Recreate JSON
+            ArrayList<String> payloadArrayOut = new ArrayList<>();
+            for (Bundle bundleOut : bundleArray) {
+                payloadArrayOut.add(NDJSON_WRAPPER + fhirContext.newJsonParser().encodeResourceToString(bundleOut) + "}");
+            }
+
+            String payloadOut = String.join("\n", payloadArrayOut);
+            binary.setData(payloadOut.getBytes());
         }
 
-        //Recreate JSON
-        ArrayList<String> payloadArrayOut = new ArrayList<>();
-        for (Bundle bundleOut : bundleArray) {
-            payloadArrayOut.add(NDJSON_WRAPPER + fhirContext.newJsonParser().encodeResourceToString(bundleOut) + "}");
-        }
-
-        String payloadOut = String.join("\n", payloadArrayOut);
-        binary.setData(payloadOut.getBytes());
+        return binary;
     }
 
     public static Set<String> extractPatientIds(Bundle bundle) {
@@ -241,6 +288,20 @@ public class PseudonymizationImplementation implements ServiceTask {
         } else {
             return saltStringList.get(0).getValue();
         }
+    }
+
+    private InputStream readBinaryResource(DsfClient client, String id, String version)
+    {
+        MediaType mediaType = MediaType.valueOf(MediaType.APPLICATION_OCTET_STREAM);
+        if (version != null && !version.isEmpty())
+            return client.readBinary(id, version, mediaType);
+        else
+            return client.readBinary(id, mediaType);
+    }
+
+    private String getMimeType(ListResource.ListEntryComponent item)
+    {
+        return item.getExtensionString(ConstantsTransit.EXTENSION_LIST_ENTRY_MIMETYPE);
     }
 
 }
