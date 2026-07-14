@@ -459,33 +459,6 @@ services:
       - db
       - hrp-fhir
 
-#  downloader-process:
-#    image: ${DOWNLOADER_PROCESS_IMAGE}
-#    container_name: ${DOWNLOADER_PROCESS_CONTAINER_NAME}
-#    environment:
-#      - ARTIFACTORY_USER=${ARTIFACTORY_USER}
-#      - ARTIFACTORY_PASSWORD=${ARTIFACTORY_PASSWORD}
-#      - PROCESS_JARS_URL=${PROCESS_JARS_URL}
-#    command: sh -c "
-#      apk add --no-cache wget && \
-#      cd /cache && \
-#      echo 'Cleaning cache folder...' && \
-#      rm -rf /cache/* && \
-#      echo 'Downloading process jars...' && \
-#      wget --user=$(cat $ARTIFACTORY_USER) --password=$(cat $ARTIFACTORY_PASSWORD) $PROCESS_JARS_URL && \
-#      ls -l /cache && \
-#      echo 'Downloading process jars done' && \
-#      echo 'Chown process jars...' && \
-#      ls -l /cache && \
-#      echo 'Chown process jars done'"
-#    volumes:
-#      - process-jar-volume:/cache
-#    # Run once then exit
-#    restart: "no"
-#    secrets:
-#      - artifactory.password
-#      - artifactory.user
-
   mysql:
     image: mysql:8
     container_name: mysql
