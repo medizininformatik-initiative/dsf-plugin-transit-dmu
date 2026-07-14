@@ -35,14 +35,14 @@ https://github.com/medizininformatik-initiative/mii-process-data-sharing/release
 
 After downloading they have to be copied into the bpe/process folder of each role.
 
-HRP
-Data Sharing
+HRP<br />
+- Data Sharing
 
-DMS
-Data Sharing<br />
-Store Controller<br />
-Transit<br />
+DMS<br />
+- Data Sharing<br />
+- Store Controller<br />
+- Transit<br />
 
-DIC
-Data Sharing
+DIC<br />
+- Data Sharing
 
