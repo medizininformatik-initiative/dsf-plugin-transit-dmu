@@ -5,12 +5,11 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.api.IHttpRequest;
 import ca.uhn.fhir.rest.client.api.IHttpResponse;
 import ca.uhn.fhir.rest.client.interceptor.CapturingInterceptor;
+import de.fraunhofer.isst.health.transit.ConstantsTransit;
 import de.fraunhofer.isst.health.transit.spring.config.DmsProjectFileFhirClientConfig;
 import de.fraunhofer.isst.health.transit.utils.projectfile.enums.ESearchableResource;
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.HTTPResponseObject;
 import dev.dsf.bpe.v2.ProcessPluginApi;
-import dev.dsf.bpe.v2.client.dsf.DsfClient;
-import dev.dsf.bpe.v2.service.DsfClientProvider;
 import org.hl7.fhir.exceptions.FHIRFormatError;
 import org.hl7.fhir.r4.model.*;
 
@@ -18,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MiiFhirSimpleClientHelper {
-
     private final IGenericClient fhirClient;
     private final DmsProjectFileFhirClientConfig config;
     private final CapturingInterceptor capturingInterceptor;
@@ -36,7 +34,8 @@ public class MiiFhirSimpleClientHelper {
 //            context.getRestfulClientFactory().setSocketTimeout(config.getTimeOut());
 //        }
 
-        this.fhirClient = (IGenericClient) api.getDsfClientProvider().getByEndpointUrl(config.getFhirStoreBaseUrl());
+        this.fhirClient = api.getFhirClientProvider().getById(ConstantsTransit.PROJECT_FILE).get();
+
         //this.fhirClient = config.fhirClientFactory().getFhirClient().getGenericFhirClient();
         //this.fhirClient = context.newRestfulGenericClient(config.getServerUrl());
 

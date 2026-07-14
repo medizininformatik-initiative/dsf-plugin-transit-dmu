@@ -1,9 +1,7 @@
 package de.fraunhofer.isst.health.transit.service.trigger;
 
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
-import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
 import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
@@ -30,12 +28,10 @@ public class CheckNewProject implements ServiceTask
     public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         String from = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);
 
-        DsfClient dsfClient = (DsfClient) api.getDsfClientProvider().getLocal()
-                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-                    DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+        DsfClient dsfClient = api.getDsfClientProvider().getLocal();
 
         Map<String, List<String>> parameters = new HashMap<>();
-        parameters.put("_profile", List.of("http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing"));
+        parameters.put("_profile", List.of("http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing|1.1"));
         parameters.put("status", List.of("in-progress"));
         parameters.put("_lastUpdated", List.of("ge" + from));
         Bundle result = dsfClient.search(Task.class, parameters);
@@ -53,7 +49,7 @@ public class CheckNewProject implements ServiceTask
         if (taskIds != null && !taskIds.isEmpty()){
             logger.info("Number of New Projects: " + taskIds.size());
             variables.setFhirResourceList(BPMN_EXECUTION_PROJECTS, tasks);
-            variables.setStringList(BPMN_EXECUTION_PROJECT_IDS,taskIds);
+            variables.setStringList(BPMN_EXECUTION_PROJECT_IDS, taskIds);
             variables.setString(BPMN_EXECUTION_NEW_PROJECT, "yes");
         }else{
             variables.setString(BPMN_EXECUTION_NEW_PROJECT, "no");

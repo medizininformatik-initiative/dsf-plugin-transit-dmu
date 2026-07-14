@@ -1,5 +1,6 @@
 <StructureDefinition xmlns="http://hl7.org/fhir">
     <meta>
+        <profile value="http://dsf.dev/fhir/StructureDefinition/structure-definition" />
         <tag>
             <system value="http://dsf.dev/fhir/CodeSystem/read-access-tag" />
             <code value="ALL" />
@@ -18,7 +19,7 @@
     <kind value="resource" />
     <abstract value="false" />
     <type value="Task" />
-    <baseDefinition value="http://dsf.dev/fhir/StructureDefinition/task-base" />
+    <baseDefinition value="http://dsf.dev/fhir/StructureDefinition/task" />
     <derivation value="constraint" />
     <differential>
         <element id="Task.instantiatesCanonical">
@@ -27,8 +28,8 @@
         </element>
         <element id="Task.input">
             <path value="Task.input" />
-            <min value="6" />
-            <max value="6" />
+            <min value="5" />
+            <max value="5" />
         </element>
         <element id="Task.input:message-name">
             <path value="Task.input" />
@@ -118,38 +119,6 @@
             <fixedCode value="data-integration-center"/>
         </element>
         <element id="Task.input:data-integration-center.value[x]">
-            <path value="Task.input.value[x]"/>
-        </element>
-
-        <element id="Task.input:data-set-reference">
-            <path value="Task.input"/>
-            <sliceName value="data-set-reference"/>
-            <min value="1"/>
-            <max value="1"/>
-        </element>
-        <element id="Task.input:data-set-reference.type">
-            <path value="Task.input.type"/>
-            <binding>
-                <strength value="required"/>
-                <valueSet value="http://datamanagementunit.eu/fhir/ValueSet/dmu-tools|#{version}"/>
-            </binding>
-        </element>
-        <element id="Task.input:data-set-reference.type.coding">
-            <path value="Task.input.type.coding"/>
-            <min value="1"/>
-            <max value="1"/>
-        </element>
-        <element id="Task.input:data-set-reference.type.coding.system">
-            <path value="Task.input.type.coding.system"/>
-            <min value="1"/>
-            <fixedUri value="http://datamanagementunit.eu/fhir/CodeSystem/dmu-tools"/>
-        </element>
-        <element id="Task.input:data-set-reference.type.coding.code">
-            <path value="Task.input.type.coding.code"/>
-            <min value="1"/>
-            <fixedCode value="data-set-reference"/>
-        </element>
-        <element id="Task.input:data-set-reference.value[x]">
             <path value="Task.input.value[x]"/>
         </element>
 

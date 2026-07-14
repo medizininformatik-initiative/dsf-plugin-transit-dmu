@@ -29,7 +29,9 @@ public class MiiFhirComplexClientHelper extends MiiFhirSimpleClientHelper {
      */
     public MiiFhirComplexClientHelper(ProcessPluginApi api, String projectIdentifier, DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig) {
         super(api, dmsProjectFileFhirClientConfig);
+
         HTTPResponseObject responseObject = searchByIdentifier(projectIdentifier, ESearchableResource.RESEARCH_STUDY);
+
         if (responseObject.hasResource()) {
             dup = new DataUsageProject((ResearchStudy) responseObject.getResource(), this);
         } else {

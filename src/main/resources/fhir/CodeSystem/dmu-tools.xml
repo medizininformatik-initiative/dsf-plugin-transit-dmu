@@ -1,5 +1,6 @@
 <CodeSystem xmlns="http://hl7.org/fhir">
 	<meta>
+        <profile value="http://dsf.dev/fhir/StructureDefinition/code-system" />
 		<tag>
 			<system value="http://dsf.dev/fhir/CodeSystem/read-access-tag"/>
 			<code value="ALL"/>
@@ -52,6 +53,11 @@
 		<code value="data-set-reference" />
 		<display value="Data Set Reference" />
 		<definition value="Data Set Reference" />
+	</concept>
+	<concept>
+		<code value="merge-task-id"/>
+		<display value="Merge Task Id"/>
+		<definition value="Reference with identifier of a merge-task-id"/>
 	</concept>
 
 

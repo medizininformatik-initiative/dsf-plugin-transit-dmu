@@ -12,7 +12,8 @@ public interface ConstantsTransit
 
 	String PROCESS_NAME_FULL_TRANSIT_TRIGGER = PROCESS_TRANSIT_NAME_BASE + PROCESS_NAME_TRANSIT_TRIGGER;
 
-	String EXTENSION_URL_DIC_IDENTIFIER = "http://medizininformatik-initiative.de/fhir/Extension/dic-identifier";
+	String EXTENSION_URL_DIC_IDENTIFIER = "http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-dic-identifier";
+	String EXTENSION_LIST_ENTRY_MIMETYPE = "http://medizininformatik-initiative.de/fhir/StructureDefinition/extension-list-entry-item-mimetype";
 
 	String BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER = "projectIdentifier";
 	String BPMN_EXECUTION_VARIABLE_CONTRACT_URL = "contractUrl";
@@ -47,6 +48,7 @@ public interface ConstantsTransit
     String DUPIDENTIFIER = "dupIdentifier";
     String FHIRSTOREURL = "fhirContainerUrl";
     String FHIRSTOREID = "fhirContainerId";
+	String ARCHIVEURL = "archiveUrl";
     String ISARCHIVED = "archived";
     String BUNDLEOBJECT = "bundleObject";
     String BUNDLEID = "bundleID";
@@ -69,6 +71,9 @@ public interface ConstantsTransit
     String REMOVE_IDENTIFIER = "removeIdentifier";
 	String COLLECTION_BUNDLE = "collectionBundle";
 
+	//Project File
+	String PROJECT_FILE = "projectfile";
+
     //FHIR-Store
     String FHIR_STORE_VERSION = "1.0";
     String FHIR_STORE_REQUESTER = "Transit";
@@ -80,9 +85,9 @@ public interface ConstantsTransit
 	 String DSF_TASK_CODESYSTEM_DATASHARING
 			= "http://medizininformatik-initiative.de/fhir/CodeSystem/data-sharing";
 
-
 	 String DSF_TASK_BPMNMESSAGE_MESSAGENAME = "message-name";
 	 String DSF_TASK_BPMNMESSAGE_BUSINESSKEY = "business-key";
+	 String DSF_TASK_CORRELATION_KEY = "correlation-key";
 
 	 String DSF_TASK_DATASHARING_DIC_CORRELATION = "dic-correlation-key";
 	 String DSF_TASK_DATASHARING_DIC_IDENTIFIER
@@ -118,4 +123,14 @@ public interface ConstantsTransit
 	String BPMN_EXECUTION_CLOSE_PROCESS = "closeProcess";
 	String BPMN_EXECUTION_CLOSE_PROCESS_LIST = "processList";
 	String BPMN_EXECUTION_CLOSE_PROCESS_IDS = "processListIds";
+	String CODESYSTEM_MERGE_TASK_ID = "merge-task-id";
+	//Kubernetes
+	String BPMN_EXECUTION_KUBERNETES = "kubernetes";
+
+	//Questionnare
+	String QUESTIONNAIRES_ITEM_DISPLAY = "display";
+	String QUESTIONNAIRES_ITEM_RELEASE = "release";
+	String QUESTIONNAIRES_PLACEHOLDER_PROJECT_IDENTIFIER = "{project-identifier-placeholder}";
+	String QUESTIONNAIRES_ITEM_ARCHIVE_URL = "archive-url";
+
 }

@@ -132,7 +132,13 @@
             <artifactId>commons-text</artifactId>
             <version>1.7</version>
         </dependency>
-
+		<!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt</artifactId>
+			<version>0.13.0</version>
+			<scope>compile</scope>
+		</dependency>
 		<!-- testing -->
 
         <!--

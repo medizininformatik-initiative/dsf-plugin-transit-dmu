@@ -1,12 +1,12 @@
 <Questionnaire xmlns="http://hl7.org/fhir">
 	<meta>
-		<profile value="http://dsf.dev/fhir/StructureDefinition/questionnaire"/>
+		<profile value="http://dsf.dev/fhir/StructureDefinition/questionnaire" />
 		<tag>
 			<system value="http://dsf.dev/fhir/CodeSystem/read-access-tag"/>
 			<code value="ALL"/>
 		</tag>
 	</meta>
-	<url value="http://medizininformatik-initiative.de/fhir/Questionnaire/store-deletion-confirmation"/>
+	<url value="http://datamanagementunit.eu/fhir/Questionnaire/confirm-archive-url"/>
 	<!-- version managed by bpe -->
 	<version value="#{version}"/>
 	<!-- date managed by bpe -->
@@ -26,15 +26,20 @@
 		<required value="true"/>
 	</item>
 	<item>
-		<linkId value="project-identifier"/>
-		<type value="string"/>
-		<text value="The project identifier"/>
+		<linkId value="display"/>
+		<type value="display"/>
+		<text value="{project-identifier-placeholder} confirm archive url: This user-task confirms the archive url for the project {project-identifier-placeholder}."/>
+	</item>
+	<item>
+		<linkId value="archive-url"/>
+		<type value="url"/>
+		<text value="Please type the URL of the archive."/>
 		<required value="true"/>
 	</item>
 	<item>
-		<linkId value="store-deletion-confirmation"/>
-		<type value="boolean"/>
-		<text value="Please confirm that the FHIR-Store can be deleted"/>
+		<linkId value="release"/>
+		<type value="string"/>
+		<text value="To confirm the archive url please type in the project identifier."/>
 		<required value="true"/>
 	</item>
 </Questionnaire>

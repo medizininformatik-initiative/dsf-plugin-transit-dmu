@@ -20,11 +20,8 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.hl7.fhir.r4.model.*;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -32,23 +29,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ArchiveStore implements ServiceTask {
-    private static final Logger LOGGER = Logger.getLogger(ArchiveStore.class.getName());
-    private static final double CONVERSIONMB = 0.000001;
-    private static final double OVERHEAD = 1.20;
+public class ArchiveData implements ServiceTask {
+    private static final Logger LOGGER = Logger.getLogger(ArchiveData.class.getName());
     private static final int RETRYDELAYMINUTES = 1;
     private static final int RETRYMAXNUMBER = 15;
     private static final int TIMEOUT_S = 30;
-    private static final String SERVICEPREFIX = "http://archive-";
     private static final String UPLOADENDPOINT = "/upl/";
     private static final String HEALTHENDPOINT = "/health";
     private String dupIdentifier;
-    private double size;
     private String nginxUrl;
     private DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig;
     private TransitVariablesConfig transitVariablesConfig;
 
-    public ArchiveStore(DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig, TransitVariablesConfig transitVariablesConfig) {
+    public ArchiveData(DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig, TransitVariablesConfig transitVariablesConfig) {
         super();
         this.dmsProjectFileFhirClientConfig = dmsProjectFileFhirClientConfig;
         this.transitVariablesConfig = transitVariablesConfig;
@@ -60,8 +53,9 @@ public class ArchiveStore implements ServiceTask {
 
         dupIdentifier = (variables.getString(ConstantsTransit.DUPIDENTIFIER)).toLowerCase(Locale.ROOT);
         Bundle collection = (Bundle) variables.getFhirResource(ConstantsTransit.COLLECTION_BUNDLE);
+        nginxUrl = variables.getString(ConstantsTransit.ARCHIVEURL);
 
-        nginxUrl = SERVICEPREFIX + dupIdentifier;
+        String file = FhirContext.forR4().newJsonParser().encodeResourceToString(collection);
 
         //Change collection to Transaction
         collection.setType(Bundle.BundleType.TRANSACTION);
@@ -74,11 +68,6 @@ public class ArchiveStore implements ServiceTask {
         if (!collection.getEntry().isEmpty()) {
 
             String path = UPLOADENDPOINT + dupIdentifier + ".json";
-            String file = FhirContext.forR4().newJsonParser().encodeResourceToString(collection);
-            byte[] bytes = file.getBytes(StandardCharsets.UTF_8);
-            size = Math.ceil(bytes.length * CONVERSIONMB * OVERHEAD);
-
-            setUpGit();
 
             //Setup Client-Builder
             ClientBuilder builder = ClientBuilder.newBuilder();
@@ -135,48 +124,6 @@ public class ArchiveStore implements ServiceTask {
         } else {
             LOGGER.info("ArchiveStore: no data found on FHIR-Store!");
         }
-    }
-
-
-    //TODO This might cause issues if two projects are archived at the exact same time and
-    // one commits between the clone and push of the other
-    private void setUpGit() throws IOException, GitAPIException {
-        String install = Renderer.renderInstall(dupIdentifier);
-        String chartAdditions = Renderer.renderChartAdditions(dupIdentifier);
-        String chart = Renderer.renderChart(dupIdentifier);
-        String values = Renderer.renderValues(dupIdentifier, size);
-        LOGGER.info("Checking out repo with username " + transitVariablesConfig.getGitUsername());
-        RepositoryManagement repositoryManagement = new RepositoryManagement(
-                dupIdentifier,
-                transitVariablesConfig.getGitUrl(),
-                transitVariablesConfig.getGitBranch(),
-                transitVariablesConfig.getGitUsername(),
-                transitVariablesConfig.getGitCredentials());
-        repositoryManagement.cloneInto("Repository-" + dupIdentifier);
-        repositoryManagement.writeFile(
-                "development/dmu/charts/archives-" + dupIdentifier + "/templates/",
-                "install.yaml",
-                install,
-                false);
-        repositoryManagement.writeFile(
-                "development/dmu/charts/archives-" + dupIdentifier + "/",
-                "Chart.yaml",
-                chart,
-                false);
-        repositoryManagement.writeFile(
-                "development/dmu/charts/archives-" + dupIdentifier + "/",
-                "values.yaml",
-                values,
-                false);
-        repositoryManagement.writeFile(
-                "development/dmu/",
-                "Chart.yaml",
-                chartAdditions + "\n",
-                true);
-        repositoryManagement.addAll();
-        repositoryManagement.commit("Added File Storage to archive project with id " + dupIdentifier);
-        repositoryManagement.push();
-        repositoryManagement.close();
     }
 
     private void updateProjectFile(ProcessPluginApi api, String dupIdentifier, String archiveUrl) {

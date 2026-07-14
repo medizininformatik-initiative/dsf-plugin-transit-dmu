@@ -19,6 +19,7 @@ import de.fraunhofer.isst.health.transit.utils.projectfile.status.DataUsageProje
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
 import dev.dsf.bpe.v2.constants.CodeSystems;
 import dev.dsf.bpe.v2.constants.NamingSystems;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
@@ -52,7 +53,12 @@ public class CreateProjectFileListener implements ServiceTask {
     @Override
     public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         LOGGER.log(Level.INFO, "Started Camunda Implementation CreateProjectFileListener");
-        Task task = variables.getStartTask();
+        Task taskTransit = variables.getStartTask();
+
+        String mergeTaskId = getMergeTaskId(api.getTaskHelper(), taskTransit);
+
+        Task task = api.getDsfClientProvider().getLocal().withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
+                DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)).read(Task.class, mergeTaskId);
 
         //Get Project Identifier from task
         String projectIdentifier = getProjectIdentifier(task);
@@ -65,6 +71,8 @@ public class CreateProjectFileListener implements ServiceTask {
         List<String> researcherIdentifiers = getResearcherIdentifiers(api.getTaskHelper(), task);
         variables.setStringList(ConstantsTransit.BPMN_EXECUTION_VARIABLE_RESEARCHER_IDENTIFIERS,
                 researcherIdentifiers);
+
+        variables.setBoolean(ConstantsTransit.BPMN_EXECUTION_KUBERNETES, transitVariablesConfig.isKubernetes());
 
         //DMS Target for Store controller
         variables.setTarget(
@@ -195,6 +203,14 @@ public class CreateProjectFileListener implements ServiceTask {
                         e.getAddress(), correlationKey))
                 .orElseThrow(() -> new RuntimeException(
                         "No endpoint of found for organization '" + organizationIdentifier + "'"));
+    }
+
+    private String getMergeTaskId(TaskHelper helper, Task task)
+    {
+        return helper
+                .getFirstInputParameterValue(task, ConstantsTransit.CODESYSTEM_DMU_TOOLS,
+                        ConstantsTransit.CODESYSTEM_MERGE_TASK_ID, StringType.class)
+                .map(StringType::getValue).orElseThrow(() -> new RuntimeException("Task.input:merge-task-id missing"));
     }
 
     private String getProjectIdentifier(Task task)

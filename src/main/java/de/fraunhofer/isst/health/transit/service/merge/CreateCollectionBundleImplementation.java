@@ -124,7 +124,9 @@ public class CreateCollectionBundleImplementation implements ServiceTask {
 			ArrayList<MIIPerson> scientists = miiFhirClientHelper.getDataUsageProject().getPersonGroup().getResearcher();
 
 			//Create DB-Entries for Access-Control of File
-			StoreUtils.setAccessList(transitVariablesConfig, dupIdentifier, fileName, scientists);
+            if (transitVariablesConfig.getSetAccessList()) {
+                StoreUtils.setAccessList(transitVariablesConfig, dupIdentifier, fileName, scientists);
+            }
 
 			return returnUrl;
 

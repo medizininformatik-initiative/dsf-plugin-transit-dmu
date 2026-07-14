@@ -1,12 +1,10 @@
 package de.fraunhofer.isst.health.transit.service.merge;
 
-import ca.uhn.fhir.rest.api.SearchStyleEnum;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ca.uhn.fhir.rest.gclient.StringClientParam;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
 import de.fraunhofer.isst.health.transit.spring.config.DmsFhirClientConfig;
 import de.fraunhofer.isst.health.transit.spring.config.DmsProjectFileFhirClientConfig;
 import de.fraunhofer.isst.health.transit.spring.config.TransitVariablesConfig;
+import de.fraunhofer.isst.health.transit.utils.DataResource;
 import de.fraunhofer.isst.health.transit.utils.ResultFormatter;
 import de.fraunhofer.isst.health.transit.utils.projectfile.enums.EDataUsageProjectCode;
 import de.fraunhofer.isst.health.transit.utils.projectfile.helper.MiiFhirComplexClientHelper;
@@ -15,17 +13,20 @@ import de.fraunhofer.isst.health.transit.utils.projectfile.status.DataUsageProje
 import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
-import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
 import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
+import jakarta.ws.rs.core.MediaType;
 import org.hl7.fhir.r4.model.*;
 
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.*;
 
@@ -52,51 +53,56 @@ public class DownloadDataSetImplementation implements ServiceTask {
     public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         LOGGER.log(Level.INFO, "Start DownloadDataSetImplementation");
 
-        DsfClient inboxClient = (DsfClient) api.getDsfClientProvider().getByEndpointUrl(dmsFhirClientConfig.getFhirStoreBaseUrl())
-                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-                        DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+        DsfClient inboxClient = api.getDsfClientProvider().getByEndpointUrl(dmsFhirClientConfig.getFhirStoreBaseUrl());
 
         setVariables(api, variables);
 
         String dizId = variables.getString(ConstantsTransit.CURRENTDIZID);
 
-        String bundleID = variables.getString(ConstantsTransit.BUNDLEID
-                + ConstantsTransit.DIZSEPERATOR
-                + dizId);
+
         String documentID = variables.getString(ConstantsTransit.DOCUMENTID
                 + ConstantsTransit.DIZSEPERATOR
                 + dizId);
-        String binaryID = variables.getString(ConstantsTransit.BINARYID
-                + ConstantsTransit.DIZSEPERATOR
-                + dizId);
+//        String binaryID = variables.getString(ConstantsTransit.BINARYID
+//                + ConstantsTransit.DIZSEPERATOR
+//                + dizId);
+//        String bundleID = variables.getString(ConstantsTransit.BUNDLEID
+//                + ConstantsTransit.DIZSEPERATOR
+//                + dizId);
 
         LOGGER.log(Level.INFO, "dizID: " + dizId);
 
-        if (!Objects.equals(bundleID, "NA")) {
-            LOGGER.log(Level.INFO, "bundleID: " + bundleID);
-            Resource bundle = inboxClient.read(Bundle.class, bundleID);
-//			String bundle = downloader.getResourceFromInbox("Bundle", bundleID);
-            if (bundle != null && !bundle.isEmpty()) {
-                LOGGER.log(Level.INFO, "Bundle loaded");
-                variables.setFhirResource(BUNDLE, bundle);
-            }
-            variables.setFhirResource(BUNDLE, bundle);
-        } else {
-            LOGGER.log(Level.INFO, "binaryID: " + binaryID);
-            Resource binary = inboxClient.read(Binary.class, binaryID);
-            //String binary = downloader.getResourceFromInbox("Binary", binaryID);
-            if (binary != null && !binary.isEmpty()) {
-                LOGGER.log(Level.INFO, "Binary loaded");
-                variables.setFhirResource(BINARY, binary);
-            }
-        }
         LOGGER.log(Level.INFO, "documentID: " + documentID);
-        Resource documentReference = inboxClient.read(DocumentReference.class, documentID);
+        DocumentReference documentReference = inboxClient.read(DocumentReference.class, documentID);
 //		String documentReference = downloader.getResourceFromInbox("DocumentReference", documentID);
         if (documentReference != null && !documentReference.isEmpty()) {
             LOGGER.log(Level.INFO, "DocumentReference loaded");
             variables.setFhirResource(DOCUMENT_REFERENCE, documentReference);
         }
+
+        Stream<DataResource> attachments = readAttachments(api, documentReference);
+        List<Resource> resources = getResources(attachments);
+        variables.setFhirResourceList(BUNDLE, resources);
+
+
+//        if (!Objects.equals(bundleID, "NA")) {
+//            LOGGER.log(Level.INFO, "bundleID: " + bundleID);
+//            Resource bundle = inboxClient.read(Bundle.class, bundleID);
+//            if (bundle != null && !bundle.isEmpty()) {
+//                LOGGER.log(Level.INFO, "Bundle loaded");
+//                variables.setFhirResource(BUNDLE, bundle);
+//            }
+//            variables.setFhirResource(BUNDLE, bundle);
+//        } else {
+//            LOGGER.log(Level.INFO, "binaryID: " + binaryID);
+//            Resource binary = inboxClient.read(Binary.class, binaryID);
+//            //String binary = downloader.getResourceFromInbox("Binary", binaryID);
+//            if (binary != null && !binary.isEmpty()) {
+//                LOGGER.log(Level.INFO, "Binary loaded");
+//                variables.setFhirResource(BINARY, binary);
+//            }
+//        }
+
 
         uploadBundleTaskToProjectFile(api, variables);
     }
@@ -115,30 +121,6 @@ public class DownloadDataSetImplementation implements ServiceTask {
         variables.setString(ConstantsTransit.DOCUMENTID
                 + ConstantsTransit.DIZSEPERATOR
                 + dizId, documentID);
-
-        String dataSetReference = api.getTaskHelper().getFirstInputParameterStringValue(dataSetTask,
-                CODESYSTEM_DMU_TOOLS, CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_REFERENCE).get();
-
-        if (dataSetReference.contains("Binary")) {
-            variables.setString(ConstantsTransit.BUNDLEID
-                            + ConstantsTransit.DIZSEPERATOR
-                            + dizId,
-                    "NA");
-            variables.setString(ConstantsTransit.BINARYID
-                            + ConstantsTransit.DIZSEPERATOR
-                            + dizId,
-                    dataSetReference.substring(dataSetReference.indexOf("/") + 1));
-        } else if (dataSetReference.contains("Bundle")) {
-            variables.setString(ConstantsTransit.BINARYID
-                            + ConstantsTransit.DIZSEPERATOR
-                            + dizId,
-                    "NA");
-            variables.setString(ConstantsTransit.BUNDLEID
-                            + ConstantsTransit.DIZSEPERATOR
-                            + dizId,
-                    dataSetReference.substring(dataSetReference.indexOf("/") + 1));
-        }
-
 
         //TODO Read documentID and write to Process-Variable
     }
@@ -196,22 +178,64 @@ public class DownloadDataSetImplementation implements ServiceTask {
         }
     }
 
-    /*
-    private DocumentReference getDocumentReference(String documentReferenceId) {
-
-        this.dmsProjectFileFhirClientConfig.fhirClientFactory().getFhirClient();
-        IGenericClient client = this.dmsProjectFileFhirClientConfig.fhirClientFactory().getFhirClient().getGenericFhirClient();
-
-        Bundle result = client
-                .search()
-                .forResource(DocumentReference.class)
-                .where(new StringClientParam("_id").matchesExactly().value(documentReferenceId))
-                .returnBundle(Bundle.class)
-                .usingStyle(SearchStyleEnum.POST)
-                .execute();
-
-        return (DocumentReference) result.getEntryFirstRep().getResource();
+    private Stream<DataResource> readAttachments(ProcessPluginApi api, DocumentReference documentReference)
+    {
+        return documentReference.getContent().stream()
+                .filter(DocumentReference.DocumentReferenceContentComponent::hasAttachment)
+                .map(DocumentReference.DocumentReferenceContentComponent::getAttachment)
+                .map(attachment -> readAttachment(api, attachment));
     }
-     */
+
+    private DataResource readAttachment(ProcessPluginApi api, Attachment attachment)
+    {
+        IdType attachmentId = new IdType(attachment.getUrl());
+
+        DsfClient client = api.getDsfClientProvider().getByEndpointUrl(attachmentId.getBaseUrl());
+
+        String mimetype = getAttachmentMimeType(attachment);
+        if (!isMimetypeFhir(mimetype))
+        {
+            return DataResource.of(attachmentId, mimetype);
+        }
+        else
+        {
+            try
+            {
+                return DataResource
+                        .of(readResource(client, attachmentId.getIdPart(),
+                                attachmentId.getVersionIdPart()));
+            }
+            catch (Exception exception)
+            {
+                throw new RuntimeException("Downloading attachment failed - " + exception.getMessage(), exception);
+            }
+        }
+    }
+
+    private String getAttachmentMimeType(Attachment attachment)
+    {
+        return Optional.of(attachment).filter(Attachment::hasContentType).map(Attachment::getContentType)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Could not find any attachment contentType (mimeType) in DocumentReference"));
+    }
+
+    private Resource readResource(DsfClient client, String id, String version)
+    {
+        if (version != null && !version.isEmpty())
+            return client.read(Bundle.class,id, version);
+        else
+            return client.read(Bundle.class,id);
+    }
+
+    private List<Resource> getResources(Stream<DataResource> dataResources)
+    {
+        return dataResources.map(DataResource::toResource).filter(Objects::nonNull)
+                .toList();
+    }
+
+    private boolean isMimetypeFhir(String mimetype)
+    {
+        return "application/fhir+xml".equals(mimetype) || "application/fhir+json".equals(mimetype);
+    }
 
 }

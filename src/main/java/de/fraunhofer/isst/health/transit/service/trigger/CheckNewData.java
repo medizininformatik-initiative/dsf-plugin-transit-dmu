@@ -1,10 +1,8 @@
 package de.fraunhofer.isst.health.transit.service.trigger;
 
 import de.fraunhofer.isst.health.transit.spring.config.DmsFhirClientConfig;
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
-import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
 import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
@@ -35,9 +33,7 @@ public class CheckNewData implements ServiceTask
         String from = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);
         //IGenericClient client = fhirClientFactory.getFhirClient().getGenericFhirClient();
 
-        DsfClient newClient = (DsfClient) api.getDsfClientProvider().getByEndpointUrl(dmsFhirClientConfig.getFhirStoreBaseUrl())
-                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-                    DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+        DsfClient newClient = api.getDsfClientProvider().getByEndpointUrl(dmsFhirClientConfig.getFhirStoreBaseUrl());
 
         Map<String, List<String>> searchParameters = new HashMap<>();
         searchParameters.put("status", List.of("current"));
@@ -56,12 +52,10 @@ public class CheckNewData implements ServiceTask
                 .execute();
          */
 
-        DsfClient dsfClient = (DsfClient) api.getDsfClientProvider().getLocal()
-                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-                    DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+        DsfClient dsfClient = api.getDsfClientProvider().getLocal();
 
         Map<String, List<String>> parameters = new HashMap<>();
-        parameters.put("_profile", List.of("http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing"));
+        parameters.put("_profile", List.of("http://medizininformatik-initiative.de/fhir/StructureDefinition/task-merge-data-sharing|1.1"));
         parameters.put("status", List.of("in-progress"));
         parameters.put("_sort", List.of("-_lastUpdated"));
         Bundle bundle = dsfClient.search(Task.class, parameters);

@@ -1,8 +1,6 @@
 package de.fraunhofer.isst.health.transit.message;
 
-import ca.uhn.fhir.context.FhirContext;
 import de.medizininformatik_initiative.processes.common.activity.RetryTaskSender;
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.MessageSendTask;
 import dev.dsf.bpe.v2.activity.task.BusinessKeyStrategies;
@@ -31,6 +29,7 @@ public class SendNewData implements MessageSendTask
     @Override
     public TaskSender getTaskSender(ProcessPluginApi api, Variables variables,
                                     SendTaskValues sendTaskValues) {
+
         return new RetryTaskSender(api, variables, sendTaskValues,
                 BusinessKeyStrategies.SAME,
                 (target) -> getAdditionalInputParameters(api, variables, sendTaskValues, target));
@@ -47,7 +46,6 @@ public class SendNewData implements MessageSendTask
                 .filter(task -> task.getIdElement().getIdPart().equals(documentReferenceValue))
                 .findFirst().get();
 
-
         String dizId = documentReference.getAuthorFirstRep().getIdentifier().getValue();
 
         Task.ParameterComponent documentReferenceParameter = new Task.ParameterComponent();
@@ -55,17 +53,12 @@ public class SendNewData implements MessageSendTask
                 .setCode(CODESYSTEM_DMU_VALUE_DOCUMENT_REFERENCE);
         documentReferenceParameter.setValue(new StringType(documentReferenceValue));
 
-        Task.ParameterComponent inputDataSetReference = new Task.ParameterComponent();
-        inputDataSetReference.getType().addCoding().setSystem(CODESYSTEM_DMU_TOOLS)
-                .setCode(CODESYSTEM_DATA_SHARING_VALUE_DATA_SET_REFERENCE);
-        inputDataSetReference.setValue(new StringType(documentReference.getContentFirstRep().getAttachment().getUrl()));
-
         Task.ParameterComponent inputDiz = new Task.ParameterComponent();
         inputDiz.getType().addCoding().setSystem(CODESYSTEM_DMU_TOOLS)
                 .setCode(CODESYSTEM_DMU_VALUE_DIZ);
         inputDiz.setValue(new StringType(dizId));
 
-        return Stream.of(documentReferenceParameter, inputDataSetReference, inputDiz).toList();
+        return Stream.of(documentReferenceParameter, inputDiz).toList();
     }
 
     /*

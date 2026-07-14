@@ -3,10 +3,8 @@ package de.fraunhofer.isst.health.transit.service.merge;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
-import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
 import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
@@ -15,11 +13,7 @@ import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UriType;
 
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.time.Duration;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,6 +50,7 @@ public class GetAndSendStoreUrlListener implements ServiceTask {
         }
 
         questionnaireResponse.setStatus(QuestionnaireResponse.QuestionnaireResponseStatus.COMPLETED);
+        questionnaireResponse.setAuthored(new Date());
 
         variables.setFhirResource(ConstantsTransit.QUESTIONNAIRERESPONSE, questionnaireResponse);
 
@@ -66,9 +61,7 @@ public class GetAndSendStoreUrlListener implements ServiceTask {
     private QuestionnaireResponse getQuestionnaireResponse(ProcessPluginApi api, String qsId) {
         LOGGER.log(Level.INFO, "QuestionnaireResponse ID: " + qsId);
 
-        DsfClient dsfClient = (DsfClient) api.getDsfClientProvider().getLocal()
-                .withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES,
-                        DelayStrategy.constant(ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN));
+        DsfClient dsfClient = api.getDsfClientProvider().getLocal();
 
         Resource object =
                 dsfClient.read("QuestionnaireResponse", qsId);
