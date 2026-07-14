@@ -39,9 +39,9 @@ HRP
 Data Sharing
 
 DMS
-Data Sharing
-Store Controller
-Transit
+Data Sharing<br />
+Store Controller<br />
+Transit<br />
 
 DIC
 Data Sharing
