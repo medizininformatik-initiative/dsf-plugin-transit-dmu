@@ -43,7 +43,8 @@ import java.util.List;
         "createDate",
         "updateDate",
         "createDateString",
-        "updateDateString"
+        "updateDateString",
+        "expirationProperties"
 })
 public class DomainOutDTO
         extends DomainInDTO {
@@ -60,6 +61,7 @@ public class DomainOutDTO
     private XMLGregorianCalendar updateDate;
     private String createDateString;
     private String updateDateString;
+    private ExpirationPropertiesDTO expirationProperties;
 
     /**
      * Gets the value of the childDomainNames property.
@@ -225,6 +227,14 @@ public class DomainOutDTO
      */
     public void setUpdateDateString(String value) {
         this.updateDateString = value;
+    }
+
+    public ExpirationPropertiesDTO getExpirationProperties() {
+        return expirationProperties;
+    }
+
+    public void setExpirationProperties(ExpirationPropertiesDTO value) {
+        this.expirationProperties = value;
     }
 
 }
