@@ -1,10 +1,12 @@
 package de.fraunhofer.isst.health.transit.spring.config;
 
 
+import de.fraunhofer.isst.health.transit.TransitProcessPluginDeploymentListener;
 import de.fraunhofer.isst.health.transit.message.*;
 import de.fraunhofer.isst.health.transit.questionnaire.ConfirmArchiveListener;
 import de.fraunhofer.isst.health.transit.service.merge.*;
 import de.fraunhofer.isst.health.transit.service.trigger.*;
+import de.fraunhofer.isst.health.transit.utils.gpas.GpasManager;
 import de.medizininformatik_initiative.processes.common.util.DataSetStatusGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -29,15 +31,18 @@ public class TransitConfig
     @Autowired
     private  GpasManagerConfig gpasManagerConfig;
 
+    @Autowired
+    private GpasManager gpasManager;
+
     // all Processes
 
-    /*
+    @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public MimeTypeHelper mimeTypeHelper()
+    public TransitProcessPluginDeploymentListener transitProcessPluginDeploymentListener()
     {
-        return new MimeTypeHelper(CombinedDetectors.fromDefaultWithNdJson(), api.getFhirContext());
+        return new TransitProcessPluginDeploymentListener();
     }
-     */
+
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public DataSetStatusGenerator dataSetStatusGenerator()
@@ -88,8 +93,7 @@ public class TransitConfig
     public CreateProjectFileListener createProjectFileListener()
     {
         return new CreateProjectFileListener(
-                gpasManagerConfig.gpasManager(gpasManagerConfig.domainManagerBeanService(),
-                        gpasManagerConfig.psnManagerBeanService()),
+                gpasManager,
                 transitVariablesConfig, dmsProjectFileFhirClientConfig);
     }
 
@@ -112,8 +116,7 @@ public class TransitConfig
     public PseudonymizationImplementation pseudonymizationImplementation()
     {
         return new PseudonymizationImplementation(
-                gpasManagerConfig.gpasManager(gpasManagerConfig.domainManagerBeanService(),
-                gpasManagerConfig.psnManagerBeanService()), dmsFhirClientConfig);
+                gpasManager, dmsFhirClientConfig);
     }
 
     @Bean

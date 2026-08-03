@@ -4,7 +4,6 @@ import de.fraunhofer.isst.health.transit.utils.gpas.domain.*;
 import de.fraunhofer.isst.health.transit.utils.gpas.psn.DomainIsFullExceptionException;
 import de.fraunhofer.isst.health.transit.utils.gpas.psn.GetOrCreatePseudonymForListResponse;
 import de.fraunhofer.isst.health.transit.utils.gpas.psn.PSNManager;
-import de.fraunhofer.isst.health.transit.utils.gpas.psn.PSNManagerBeanService;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -12,13 +11,15 @@ import java.util.logging.Logger;
 public class GpasManager {
 
     private static final Logger LOGGER = Logger.getLogger(GpasManager.class.getName());
-    private DomainManagerBeanService ds;
-    private PSNManagerBeanService ps;
+
     public GpasManager(){
 
     }
 
-    public GpasManager(DomainManagerBeanService ds, PSNManagerBeanService ps) {
+    private DomainManager ds;
+    private PSNManager ps;
+
+    public GpasManager(DomainManager ds, PSNManager ps) {
         this.ds = ds;
         this.ps = ps;
     }
@@ -27,8 +28,7 @@ public class GpasManager {
 
         LOGGER.info("Invoking addDomain...");
         try {
-            DomainManager port = ds.getDomainServicePort();
-            return port.getDomain(domainName);
+            return ds.getDomain(domainName);
         } catch (UnknownDomainException e) {
             LOGGER.info("Expected exception: UnknownDomainException has occurred.");
             LOGGER.info(e.toString());
@@ -44,8 +44,7 @@ public class GpasManager {
 
         LOGGER.info("Invoking addDomain...");
         try {
-            DomainManager port = ds.getDomainServicePort();
-            port.addDomain(domainDTO);
+            ds.addDomain(domainDTO);
         } catch (InvalidParameterExceptionException e) {
             LOGGER.info("Expected exception: InvalidParameterException has occurred.");
             LOGGER.info(e.toString());
@@ -75,8 +74,7 @@ public class GpasManager {
 
         LOGGER.info("Invoking getOrCreatePseudonymForList...");
         try {
-            PSNManager port = ps.getGpasServicePort();
-            GetOrCreatePseudonymForListResponse.Return reponseList = port.getOrCreatePseudonymForList(original, domain);
+            GetOrCreatePseudonymForListResponse.Return reponseList = ps.getOrCreatePseudonymForList(original, domain);
             LOGGER.info("getOrCreatePseudonymForList.result=" + reponseList);
             return reponseList.getEntry();
         } catch (de.fraunhofer.isst.health.transit.utils.gpas.psn.UnknownDomainException e) {

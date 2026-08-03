@@ -109,12 +109,12 @@ public class TransitVariablesConfig
 	@Value("${de.medizininformatik.initiative.data.sharing.dms.email.enabled:false}")
 	private boolean dmsEmailEnabled;
 
-	@ProcessDocumentation(processNames = {
-			"datamanagementuniteu_storeControllerCreate" },
-			description = "Kubernetes Deployment",
-			example = "false")
-	@Value("${eu.datamanagementunit.store.kubernetes:false}")
-	private boolean kubernetes;
+@ProcessDocumentation(processNames = {
+            "datamanagementuniteu_storeControllerCreate" },
+            description = "Kubernetes Deployment",
+            example = "false")
+    @Value("${eu.datamanagementunit.store.kubernetes:false}")
+    private boolean kubernetes;
 
 	public String getStoreHostname()
 	{
@@ -202,4 +202,5 @@ public class TransitVariablesConfig
     public boolean getSetAccessList() {
         return setAccessList;
     }
+
 }
