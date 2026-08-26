@@ -1,5 +1,10 @@
 package de.fraunhofer.isst.health.transit.utils;
 
+import de.fraunhofer.isst.health.transit.utils.gpas.GpasManager;
+import de.fraunhofer.isst.health.transit.utils.gpas.domain.DomainConfig;
+import de.fraunhofer.isst.health.transit.utils.gpas.domain.DomainInDTO;
+import de.fraunhofer.isst.health.transit.utils.gpas.domain.DomainOutDTO;
+import de.fraunhofer.isst.health.transit.utils.gpas.psn.GetOrCreatePseudonymForListResponse;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Property;
@@ -73,4 +78,45 @@ public class HashIDsUtil {
             }
         }
     }
+
+    public static String getOrCreateSaltString(String dupId) {
+        GpasManager gpasManager = new GpasManager();
+
+        //Check if Domain exists
+        DomainOutDTO domainOut = gpasManager.getDomain(SALT_DOMAIN_NAME);
+
+        //Create Domain if not already existing
+        if  (domainOut == null) {
+            DomainInDTO domainInDTO = new DomainInDTO();
+
+            DomainConfig domainConfig = new DomainConfig();
+            domainConfig.setPsnLength(SALT_LENGTH);
+            domainConfig.setIncludePrefixInCheckDigitCalculation(false);
+            domainConfig.setIncludeSuffixInCheckDigitCalculation(false);
+            domainConfig.setMaxDetectedErrors(1);
+            domainConfig.setPsnsDeletable(true);
+            domainConfig.setUseLastCharAsDelimiterAfterXChars(0);
+            domainConfig.setSendNotificationsWeb(false);
+
+            domainInDTO.setAlphabet("org.emau.icmvc.ganimed.ttp.psn.alphabets.Symbol32");
+            domainInDTO.setCheckDigitClass("org.emau.icmvc.ganimed.ttp.psn.generator.HammingCode");
+            domainInDTO.setName(SALT_DOMAIN_NAME);
+            domainInDTO.setLabel(SALT_DOMAIN_NAME);
+            domainInDTO.setConfig(domainConfig);
+
+            gpasManager.createDomain(domainInDTO);
+        }
+
+        //Create or Get Salt-String for dupId
+        List<GetOrCreatePseudonymForListResponse.Return.Entry> saltStringList =
+                gpasManager.getOrCreatePseudonymForList(List.of(dupId), SALT_DOMAIN_NAME);
+
+        //Check if Salt-String is available
+        if (saltStringList.isEmpty()) {
+            throw new RuntimeException("Could not GET or CREATE a alt string!");
+        } else {
+            return saltStringList.get(0).getValue();
+        }
+    }
+
 }

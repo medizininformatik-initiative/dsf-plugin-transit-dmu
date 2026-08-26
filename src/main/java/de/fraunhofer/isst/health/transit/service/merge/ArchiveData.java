@@ -3,6 +3,7 @@ package de.fraunhofer.isst.health.transit.service.merge;
 import ca.uhn.fhir.context.FhirContext;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
 import de.fraunhofer.isst.health.transit.spring.config.DmsProjectFileFhirClientConfig;
+import de.fraunhofer.isst.health.transit.spring.config.TransitVariablesConfig;
 import de.fraunhofer.isst.health.transit.utils.*;
 import de.fraunhofer.isst.health.transit.utils.projectfile.enums.EDataUsageProjectCode;
 import de.fraunhofer.isst.health.transit.utils.projectfile.enums.EEndpointPayloadMimeType;
@@ -12,6 +13,7 @@ import de.fraunhofer.isst.health.transit.utils.projectfile.mii.MIIEndpoint;
 import de.fraunhofer.isst.health.transit.utils.projectfile.status.DataUsageProjectStatus;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -37,14 +39,16 @@ public class ArchiveData implements ServiceTask {
     private String dupIdentifier;
     private String nginxUrl;
     private DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig;
+    private TransitVariablesConfig transitVariablesConfig;
 
-    public ArchiveData(DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig) {
+    public ArchiveData(DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig, TransitVariablesConfig transitVariablesConfig) {
         super();
         this.dmsProjectFileFhirClientConfig = dmsProjectFileFhirClientConfig;
+        this.transitVariablesConfig = transitVariablesConfig;
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         LOGGER.info("ArchiveStore start");
 
         dupIdentifier = (variables.getString(ConstantsTransit.DUPIDENTIFIER)).toLowerCase(Locale.ROOT);

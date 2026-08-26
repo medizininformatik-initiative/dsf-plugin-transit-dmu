@@ -101,7 +101,7 @@ public class TransitConfig
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public DownloadDataSetImplementation downloadDataSetImplementation()
     {
-        return new DownloadDataSetImplementation(dmsProjectFileFhirClientConfig, dmsFhirClientConfig);
+        return new DownloadDataSetImplementation(dmsProjectFileFhirClientConfig, transitVariablesConfig, dmsFhirClientConfig);
     }
 
     @Bean
@@ -123,7 +123,7 @@ public class TransitConfig
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public InsertDataSetImplementation insertDataSetImplementation()
     {
-        return new InsertDataSetImplementation(dmsProjectFileFhirClientConfig, dmsFhirClientConfig);
+        return new InsertDataSetImplementation(dmsProjectFileFhirClientConfig, transitVariablesConfig, dmsFhirClientConfig);
     }
 
     @Bean
@@ -144,14 +144,14 @@ public class TransitConfig
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public ArchiveData archiveData()
     {
-        return new ArchiveData(dmsProjectFileFhirClientConfig);
+        return new ArchiveData(dmsProjectFileFhirClientConfig, transitVariablesConfig);
     }
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public CreateArchiveStore createArchiveStore()
     {
-        return new CreateArchiveStore(transitVariablesConfig);
+        return new CreateArchiveStore(dmsProjectFileFhirClientConfig, transitVariablesConfig);
     }
 
     @Bean

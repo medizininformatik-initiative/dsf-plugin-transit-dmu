@@ -26,6 +26,7 @@ public class RemoveIdentifierUtil
         for (int i = 0; i < values.size(); i++) {
             if (values.get(i).hasValues() && values.get(i).getTypeCode().startsWith("Identifier")) {
 
+                //values.get(i).getValues().get(0).setProperty("value", new StringType(null));
                 ((Identifier) values.get(i).getValues().get(0))
                         .setUse(null)
                         .setType(null)

@@ -44,7 +44,7 @@ public class ValidateFHIRImplementation implements ServiceTask {
             validationEngine.connectToTSServer(
                     "http://tx.fhir.org",
                     "",
-                    FhirPublication.R4, false);
+                    FhirPublication.R4);
 
             StringBuilder message = new StringBuilder("Started validation against following IGs: FhirR4");
 

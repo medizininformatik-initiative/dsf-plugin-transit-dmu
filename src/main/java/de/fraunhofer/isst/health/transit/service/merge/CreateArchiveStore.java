@@ -2,6 +2,7 @@ package de.fraunhofer.isst.health.transit.service.merge;
 
 import ca.uhn.fhir.context.FhirContext;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
+import de.fraunhofer.isst.health.transit.spring.config.DmsProjectFileFhirClientConfig;
 import de.fraunhofer.isst.health.transit.spring.config.TransitVariablesConfig;
 import de.fraunhofer.isst.health.transit.utils.Renderer;
 import de.fraunhofer.isst.health.transit.utils.RepositoryManagement;
@@ -34,10 +35,12 @@ public class CreateArchiveStore implements ServiceTask {
     private String dupIdentifier;
     private double size;
     private String nginxUrl;
+    private DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig;
     private TransitVariablesConfig transitVariablesConfig;
 
-    public CreateArchiveStore(TransitVariablesConfig transitVariablesConfig) {
+    public CreateArchiveStore(DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig, TransitVariablesConfig transitVariablesConfig) {
         super();
+        this.dmsProjectFileFhirClientConfig = dmsProjectFileFhirClientConfig;
         this.transitVariablesConfig = transitVariablesConfig;
     }
 

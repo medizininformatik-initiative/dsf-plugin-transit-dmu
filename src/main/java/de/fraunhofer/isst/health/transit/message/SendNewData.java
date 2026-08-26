@@ -9,6 +9,8 @@ import dev.dsf.bpe.v2.activity.values.SendTaskValues;
 import dev.dsf.bpe.v2.variables.Target;
 import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -17,7 +19,7 @@ import static de.fraunhofer.isst.health.transit.ConstantsTransit.*;
 
 public class SendNewData implements MessageSendTask
 {
-	//private static final Logger logger = LoggerFactory.getLogger(SendNewData.class);
+	private static final Logger logger = LoggerFactory.getLogger(SendNewData.class);
 
 	public SendNewData()
 	{
@@ -58,5 +60,57 @@ public class SendNewData implements MessageSendTask
 
         return Stream.of(documentReferenceParameter, inputDiz).toList();
     }
+
+    /*
+	@Override
+	protected IdType doSend(FhirWebserviceClient client, Task task)
+	{
+
+		// Create FHIR context for R4
+		FhirContext ctx = FhirContext.forR4();
+		// Serialize to JSON
+		String json = ctx
+				.newJsonParser()
+				.setPrettyPrint(true)
+				.encodeResourceToString(task);
+		logger.info(json);
+
+
+		return client.withMinimalReturn()
+				.withRetry(ConstantsBase.DSF_CLIENT_RETRY_6_TIMES, ConstantsBase.DSF_CLIENT_RETRY_INTERVAL_5MIN)
+				.create(task);
+	}
+
+	@Override
+	protected void handleSendTaskError(DelegateExecution execution, Variables variables, Exception exception,
+			String errorMessage)
+	{
+		Task task = variables.getStartTask();
+		addErrorMessage(task, errorMessage);
+
+		logger.debug("Error while executing Task message send " + this.getClass().getName(), exception);
+		logger.error("Process {} has fatal error in step {} for task {}, reason: {}",
+				execution.getProcessDefinitionId(), execution.getActivityInstanceId(), task.getId(),
+				exception.getMessage());
+
+		try
+		{
+			if (task != null)
+			{
+				task.setStatus(Task.TaskStatus.FAILED);
+				api.getFhirWebserviceClientProvider().getLocalWebserviceClient().withMinimalReturn().update(task);
+			}
+			else
+			{
+				logger.warn("Start Task null, unable update Task with failed state");
+			}
+		}
+		finally
+		{
+			execution.getProcessEngine().getRuntimeService().deleteProcessInstance(execution.getProcessInstanceId(),
+					exception.getMessage());
+		}
+	}
+     */
 
 }

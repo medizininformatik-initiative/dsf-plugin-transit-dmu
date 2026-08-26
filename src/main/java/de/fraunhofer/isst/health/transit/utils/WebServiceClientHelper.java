@@ -3,6 +3,7 @@ package de.fraunhofer.isst.health.transit.utils;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.api.Constants;
+import de.fraunhofer.isst.health.transit.models.InsertDataObject;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
@@ -13,6 +14,7 @@ import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
 import java.io.*;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -78,6 +80,7 @@ public final class WebServiceClientHelper {
 
         Client client;
         ClientBuilder builder = ClientBuilder.newBuilder();
+        SSLContext sslContext;
 
         builder = builder.readTimeout(TIMEOUT_S, TimeUnit.SECONDS).connectTimeout(TIMEOUT_S,
                 TimeUnit.SECONDS);
@@ -98,6 +101,7 @@ public final class WebServiceClientHelper {
             baseUrl = baseUrl.substring(0, url.lastIndexOf("/"));
         }
 
+        //LOGGER.info("Posting resource " + fhirResource.getId() + "to url " + baseUrl);
         WebTarget target = client.target(baseUrl);
 
         Response response;
@@ -115,6 +119,8 @@ public final class WebServiceClientHelper {
                             Constants.CT_FHIR_JSON_NEW));
         }
 
+        //LOGGER.info("postFhirResource with Response-Status: " + response.getStatus());
+
         client.close();
         return response;
     }
@@ -130,6 +136,36 @@ public final class WebServiceClientHelper {
     private static boolean checkEntryResourceType(Resource resource, ResourceType checkType) {
         ResourceType resourceType = resource.getResourceType();
         return resourceType.equals(checkType);
+    }
+
+    public static void postToContainer(InsertDataObject insertDataObject) {
+        LOGGER.info("Post to Container: " + insertDataObject.getFhirUrl());
+
+        String fhirUrl = insertDataObject.getFhirUrl();
+        DocumentReference documentReference =
+                FHIR_CONTEXT.newJsonParser().parseResource(DocumentReference.class, insertDataObject.getDocumentReference());
+        Bundle bundle = FHIR_CONTEXT.newJsonParser().parseResource(Bundle.class, insertDataObject.getBundle());
+
+        try {
+
+            LOGGER.info("Post DocumentReference");
+            postFhirResource(documentReference, fhirUrl, true);
+            LOGGER.info("Posted DocumentReference");
+            if (bundle.getType().equals(Bundle.BundleType.TRANSACTION)) {
+                LOGGER.info("Post Bundle");
+                postFhirResource(bundle, fhirUrl, true);
+                LOGGER.info("Posted Bundle");
+            } else {
+                LOGGER.info("Post Bundle-Entries");
+                for (Bundle.BundleEntryComponent entry: bundle.getEntry()) {
+                    postFhirResource(entry.getResource(), fhirUrl, true);
+                }
+                LOGGER.info("Posted Bundle-Entries");
+            }
+
+        } catch (CertificateException | IOException | KeyStoreException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

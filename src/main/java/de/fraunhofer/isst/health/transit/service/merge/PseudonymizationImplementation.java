@@ -2,6 +2,8 @@ package de.fraunhofer.isst.health.transit.service.merge;
 
 import ca.uhn.fhir.context.FhirContext;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
+import de.fraunhofer.isst.health.transit.spring.config.DmsFhirClientConfig;
+import de.fraunhofer.isst.health.transit.utils.DataResource;
 import de.fraunhofer.isst.health.transit.utils.HashIDsUtil;
 import de.fraunhofer.isst.health.transit.utils.RemoveIdentifierUtil;
 import de.fraunhofer.isst.health.transit.utils.gpas.GpasManager;
@@ -23,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.*;
 
@@ -31,14 +34,26 @@ public class PseudonymizationImplementation implements ServiceTask {
     private static final String NDJSON_WRAPPER = "{\"resource\":";
     private final FhirContext fhirContext = FhirContext.forR4();
     private GpasManager gpasManager;
+    private DmsFhirClientConfig dmsFhirClientConfig;
 
-    public PseudonymizationImplementation(GpasManager gpasManager) {
+    public PseudonymizationImplementation(GpasManager gpasManager, DmsFhirClientConfig dmsFhirClientConfig) {
         super();
         this.gpasManager = gpasManager;
+        this.dmsFhirClientConfig = dmsFhirClientConfig;
     }
 
     @Override
     public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+        String dizId = variables.getString(ConstantsTransit.CURRENTDIZID);
+        String bundleID = variables.getString(ConstantsTransit.BUNDLEID
+                + ConstantsTransit.DIZSEPERATOR
+                + dizId);
+        String binaryID = variables.getString(ConstantsTransit.BINARYID
+                + ConstantsTransit.DIZSEPERATOR
+                + dizId);
+        String documentID = variables.getString(ConstantsTransit.DOCUMENTID
+                + ConstantsTransit.DIZSEPERATOR
+                + dizId);
 
         List<Resource> resources = variables.getFhirResourceList(BUNDLE);
 
@@ -57,7 +72,40 @@ public class PseudonymizationImplementation implements ServiceTask {
 
         }
 
-        variables.setFhirResourceList(BUNDLE, pseud);
+       variables.setFhirResourceList(BUNDLE, pseud);
+//
+////        Binary binary = variables.getFhirResource(BINARY);
+////        Bundle bundle = variables.getFhirResource(BUNDLE);
+//
+//
+//
+//        LOGGER.log(Level.INFO, "Start Pseudonymization of Data Recieved for Project: "+dupIdentifier);
+////        Downloader downloader = new Downloader(this.dmsFhirClientConfig.getFhirStoreBaseUrl());
+//
+////        String documentReference = downloader.getResourceFromInbox("DocumentReference", documentID);
+//        String bundleRaw;
+//        String binaryRaw;
+//
+//        if (!Objects.equals(bundleID, "NA")) {
+//
+//            bundlePseudonymization(bundle, dupIdentifier, hashIDs, removeIdentifier);
+//
+//            //Set Source to Transit to prevent triggering the Process again when updating Bundle to Inbox
+//            bundle.getMeta().setSource("Transit");
+//
+//            //Update Bundle on FHIR-Inbox
+//            variables.setFhirResource(BUNDLE, bundle);
+//        } else {
+//
+//            binaryPseudonymization(processPluginApi, binary, dupIdentifier, hashIDs, removeIdentifier);
+//
+//            //Set Source to Transit to prevent triggering the Process again when updating Binary to Inbox
+//            binary.getMeta().setSource("Transit");
+//
+//            //Update Binary on FHIR-Inbox
+//            variables.setFhirResource(BINARY, binary);
+//        }
+
         LOGGER.log(Level.INFO, "Finished Pseudonymization of Data");
     }
 

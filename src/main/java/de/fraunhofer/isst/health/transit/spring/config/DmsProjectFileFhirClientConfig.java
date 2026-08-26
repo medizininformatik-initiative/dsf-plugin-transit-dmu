@@ -4,9 +4,19 @@ import dev.dsf.bpe.v2.documentation.ProcessDocumentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 @Configuration
 public class DmsProjectFileFhirClientConfig
 {
+	//@Autowired
+	//private FhirContext fhirContext;
+
+	//@Autowired
+	//private ProcessPluginApi api;
+
 	@ProcessDocumentation(required = true, processNames = {
 			"datamanagementuniteu_transit" }, description = "The base address of the DMS FHIR server to read/store FHIR resources", example = "http://foo.bar/fhir")
 	@Value("${eu.datamanagementunit.transit.projectfile.fhir.server.base.url:#{null}}")
@@ -143,6 +153,77 @@ public class DmsProjectFileFhirClientConfig
 	private String endpointSystem = "http://datamanagementunit.eu/fhir/Endpoint";
 	private String groupSystem = "http://datamanagementunit.eu/fhir/Group";
 
+    /*
+	public FhirClientFactory fhirClientFactory()
+	{
+		Path trustStorePath = checkExists(fhirStoreTrustStore);
+		Path certificatePath = checkExists(fhirStoreCertificate);
+		Path privateKeyPath = checkExists(fhirStorePrivateKey);
+
+		String proxyUrl = fhirStoreProxyUrl, proxyUsername = fhirStoreProxyUsername,
+				proxyPassword = fhirStoreProxyPassword;
+		if (proxyUrl == null && api.getProxyConfig().isEnabled()
+				&& !api.getProxyConfig().isNoProxyUrl(fhirStoreBaseUrl))
+		{
+			proxyUrl = api.getProxyConfig().getUrl();
+			proxyUsername = api.getProxyConfig().getUsername();
+			proxyPassword = api.getProxyConfig().getPassword() == null ? null
+					: new String(api.getProxyConfig().getPassword());
+		}
+
+		return new FhirClientFactory(trustStorePath, certificatePath, privateKeyPath, fhirStorePrivateKeyPassword,
+				fhirStoreConnectTimeout, fhirStoreSocketTimeout, fhirStoreConnectionRequestTimeout, fhirStoreBaseUrl,
+				fhirStoreUsername, fhirStorePassword, fhirStoreBearerToken, tokenProvider(), proxyUrl, proxyUsername,
+				proxyPassword, fhirStoreHapiClientVerbose, fhirContext, localIdentifierValue, dataLogger());
+	}
+
+
+	public TokenProvider tokenProvider()
+	{
+		return new OAuth2TokenProvider(tokenClient());
+	}
+
+	public TokenClient tokenClient()
+	{
+		Path trustStoreOAuth2Path = checkExists(fhirStoreOAuth2TrustStore);
+
+		String proxyUrl = fhirStoreOAuth2ProxyUrl, proxyUsername = fhirStoreOAuth2ProxyUsername,
+				proxyPassword = fhirStoreOAuth2ProxyPassword;
+		if (proxyUrl == null && api.getProxyConfig().isEnabled()
+				&& !api.getProxyConfig().isNoProxyUrl(fhirStoreOAuth2IssuerUrl))
+		{
+			proxyUrl = api.getProxyConfig().getUrl();
+			proxyUsername = api.getProxyConfig().getUsername();
+			proxyPassword = api.getProxyConfig().getPassword() == null ? null
+					: new String(api.getProxyConfig().getPassword());
+		}
+
+		return new OAuth2TokenClient(fhirStoreOAuth2IssuerUrl, fhirStoreOAuth2ClientId, fhirStoreOAuth2ClientSecret,
+				fhirStoreOAuth2ConnectTimeout, fhirStoreOAuth2SocketTimeout, trustStoreOAuth2Path, proxyUrl,
+				proxyUsername, proxyPassword);
+	}
+
+
+	public DataLogger dataLogger()
+	{
+		return new DataLogger(fhirDataLoggingEnabled, fhirContext);
+	}
+    */
+
+	private Path checkExists(String file)
+	{
+		if (file == null)
+			return null;
+		else
+		{
+			Path path = Paths.get(file);
+
+			if (!Files.isReadable(path))
+				throw new RuntimeException(path.toString() + " not readable");
+
+			return path;
+		}
+	}
 	public String getFhirStoreBaseUrl()
 	{
 		return fhirStoreBaseUrl;
