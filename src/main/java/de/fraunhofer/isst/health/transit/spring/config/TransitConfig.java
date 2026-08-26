@@ -36,6 +36,13 @@ public class TransitConfig
 
     // all Processes
 
+    /*
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public MimeTypeHelper mimeTypeHelper()
+    {
+        return new MimeTypeHelper(CombinedDetectors.fromDefaultWithNdJson(), api.getFhirContext());
+    }
+     */
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public TransitProcessPluginDeploymentListener transitProcessPluginDeploymentListener()
@@ -116,7 +123,12 @@ public class TransitConfig
     public PseudonymizationImplementation pseudonymizationImplementation()
     {
         return new PseudonymizationImplementation(
+<<<<<<< HEAD
                 gpasManager, dmsFhirClientConfig);
+=======
+                gpasManagerConfig.gpasManager(gpasManagerConfig.domainManagerBeanService(),
+                gpasManagerConfig.psnManagerBeanService()), dmsFhirClientConfig);
+>>>>>>> parent of 713c604 (Merge pull request #23 from medizininformatik-initiative/fixCVEs)
     }
 
     @Bean
