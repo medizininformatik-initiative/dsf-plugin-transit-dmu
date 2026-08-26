@@ -6,7 +6,11 @@
 
 	<groupId>de.fraunhofer.isst.health.transit</groupId>
 	<artifactId>mii-transit-dmst</artifactId>
+<<<<<<< HEAD
 	<version>1.0.0.3</version>
+=======
+	<version>1.0.0.2</version>
+>>>>>>> parent of cdb8dc3 (Merge pull request #24 from medizininformatik-initiative/fixCVEs)
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
