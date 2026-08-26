@@ -123,12 +123,7 @@ public class TransitConfig
     public PseudonymizationImplementation pseudonymizationImplementation()
     {
         return new PseudonymizationImplementation(
-<<<<<<< HEAD
                 gpasManager, dmsFhirClientConfig);
-=======
-                gpasManagerConfig.gpasManager(gpasManagerConfig.domainManagerBeanService(),
-                gpasManagerConfig.psnManagerBeanService()), dmsFhirClientConfig);
->>>>>>> parent of 713c604 (Merge pull request #23 from medizininformatik-initiative/fixCVEs)
     }
 
     @Bean
