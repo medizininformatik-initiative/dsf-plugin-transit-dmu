@@ -102,6 +102,7 @@
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http</artifactId>
             <version>4.2.3</version>
+
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
