@@ -31,13 +31,6 @@ public class TransitConfig
 
     // all Processes
 
-    /*
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public MimeTypeHelper mimeTypeHelper()
-    {
-        return new MimeTypeHelper(CombinedDetectors.fromDefaultWithNdJson(), api.getFhirContext());
-    }
-     */
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public DataSetStatusGenerator dataSetStatusGenerator()
@@ -97,7 +90,7 @@ public class TransitConfig
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public DownloadDataSetImplementation downloadDataSetImplementation()
     {
-        return new DownloadDataSetImplementation(dmsProjectFileFhirClientConfig, transitVariablesConfig, dmsFhirClientConfig);
+        return new DownloadDataSetImplementation(dmsProjectFileFhirClientConfig, dmsFhirClientConfig);
     }
 
     @Bean
@@ -113,14 +106,14 @@ public class TransitConfig
     {
         return new PseudonymizationImplementation(
                 gpasManagerConfig.gpasManager(gpasManagerConfig.domainManagerBeanService(),
-                gpasManagerConfig.psnManagerBeanService()), dmsFhirClientConfig);
+                gpasManagerConfig.psnManagerBeanService()));
     }
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public InsertDataSetImplementation insertDataSetImplementation()
     {
-        return new InsertDataSetImplementation(dmsProjectFileFhirClientConfig, transitVariablesConfig, dmsFhirClientConfig);
+        return new InsertDataSetImplementation(dmsProjectFileFhirClientConfig, dmsFhirClientConfig);
     }
 
     @Bean
@@ -141,14 +134,14 @@ public class TransitConfig
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public ArchiveData archiveData()
     {
-        return new ArchiveData(dmsProjectFileFhirClientConfig, transitVariablesConfig);
+        return new ArchiveData(dmsProjectFileFhirClientConfig);
     }
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public CreateArchiveStore createArchiveStore()
     {
-        return new CreateArchiveStore(dmsProjectFileFhirClientConfig, transitVariablesConfig);
+        return new CreateArchiveStore(transitVariablesConfig);
     }
 
     @Bean

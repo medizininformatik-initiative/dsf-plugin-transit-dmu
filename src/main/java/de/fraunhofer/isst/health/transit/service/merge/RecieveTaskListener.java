@@ -24,7 +24,6 @@ public class RecieveTaskListener implements ServiceTask
         LOGGER.log(Level.INFO, "Started Camunda Implementation RecieveTaskListener");
 
         LOGGER.info("ActivityId : " + variables.getCurrentActivityId());
-        //LOGGER.info("ActivityName : " + variables.getCurrentActivityName());
 
         switch (variables.getCurrentActivityId()) {
             case "reportContainerCreation" -> {
@@ -40,7 +39,6 @@ public class RecieveTaskListener implements ServiceTask
                 LOGGER.info("FhirStoreDeletionTask activityId : " + variables.getCurrentActivityId());
             }
             default -> {
-                //LOGGER.info("Unknown CurrentActivityName: " + variables.getCurrentActivityName());
                 LOGGER.info("Unknown CurrentActivityId: " + variables.getCurrentActivityId());
             }
         }
