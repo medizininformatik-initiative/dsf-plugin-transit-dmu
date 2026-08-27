@@ -21,7 +21,7 @@ public class CheckStoreDeletionQs implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         String projectIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
         QuestionnaireResponse questionnaireResponse = variables.getLatestReceivedQuestionnaireResponse();
 

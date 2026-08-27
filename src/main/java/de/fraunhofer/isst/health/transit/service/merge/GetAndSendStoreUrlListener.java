@@ -25,7 +25,7 @@ public class GetAndSendStoreUrlListener implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
 
         //Get ID of QuestionnaireResponse

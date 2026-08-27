@@ -31,7 +31,7 @@ public class ReadAndSaveStoreValues implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi processPluginApi, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi processPluginApi, Variables variables) throws ErrorBoundaryEvent {
         String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
 
         Task storeCreatedTask = variables.getLatestTask();

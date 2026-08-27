@@ -25,7 +25,7 @@ public class SendTaskListener implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, IOException {
         LOGGER.log(Level.INFO, "Started Camunda Implementation SendTaskListener");
 
         LOGGER.info("SendTask ID : " + variables.getCurrentActivityId());

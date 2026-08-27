@@ -20,7 +20,7 @@ public class CompleteDsfTaskListener implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         LOGGER.log(Level.INFO, "Started Camunda Implementation CompleteDsfTaskListener");
 
         QuestionnaireResponse questionnaireResponse =

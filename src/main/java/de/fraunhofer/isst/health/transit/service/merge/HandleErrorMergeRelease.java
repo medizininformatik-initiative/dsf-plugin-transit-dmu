@@ -18,7 +18,7 @@ public class HandleErrorMergeRelease implements ServiceTask
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         Task startTask = variables.getStartTask();
         String projectIdentifier = variables
                 .getString(ConstantsTransit.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
