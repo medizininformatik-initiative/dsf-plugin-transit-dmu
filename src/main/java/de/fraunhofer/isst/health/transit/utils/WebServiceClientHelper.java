@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 public final class WebServiceClientHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebServiceClientHelper.class);
-    private static final FhirContext FHIR_CONTEXT = FhirContext.forR4();
     private static final int TIMEOUT_S = 180;
 
     private WebServiceClientHelper() { }

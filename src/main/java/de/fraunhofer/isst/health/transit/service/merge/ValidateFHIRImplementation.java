@@ -25,7 +25,7 @@ public class ValidateFHIRImplementation implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi processPluginApi, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi processPluginApi, Variables variables) throws ErrorBoundaryEvent {
         LOGGER.log(Level.INFO, "Start ValidateFHIRImplementation");
         String dizId = variables.getString(ConstantsTransit.CURRENTDIZID);
         String key = variables.getBusinessKey() + ConstantsTransit.DIZSEPERATOR + dizId;

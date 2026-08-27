@@ -21,7 +21,7 @@ public class SetTargetAndConfigureTimer implements ServiceTask
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         String timerInterval = getTimerInterval(api, variables);
 
         String timerFrom = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);

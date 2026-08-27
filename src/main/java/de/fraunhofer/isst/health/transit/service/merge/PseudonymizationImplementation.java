@@ -38,7 +38,7 @@ public class PseudonymizationImplementation implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         List<Resource> resources = variables.getFhirResourceList(BUNDLE);
 
         String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
@@ -237,7 +237,7 @@ public class PseudonymizationImplementation implements ServiceTask {
         if (saltStringList.isEmpty()) {
             throw new RuntimeException("Could not GET or CREATE a alt string!");
         } else {
-            return saltStringList.get(0).getValue();
+            return saltStringList.getFirst().getValue();
         }
     }
 

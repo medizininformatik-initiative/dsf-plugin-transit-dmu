@@ -35,7 +35,7 @@ public class CreateCollectionBundleImplementation implements ServiceTask {
 	}
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         String fhirStoreUrl = variables.getString(ConstantsTransit.FHIRSTOREURL);
         LOGGER.log(Level.INFO, "Start CreateCollectionBundleImplementation for Fhir Store: "+fhirStoreUrl);
 
@@ -91,7 +91,7 @@ public class CreateCollectionBundleImplementation implements ServiceTask {
 					while (!link.isEmpty()) {
 						StoreUtils.mergeBundle(bundle, collectionBundle);
 						bundle = (Bundle) WebServiceClientHelper.getFhirResource(
-								link.get(0).getUrl());
+								link.getFirst().getUrl());
 
 						assert bundle != null;
 						link = bundle.getLink().stream()

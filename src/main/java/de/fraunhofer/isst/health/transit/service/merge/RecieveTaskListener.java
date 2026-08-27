@@ -20,7 +20,7 @@ public class RecieveTaskListener implements ServiceTask
 	}
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         LOGGER.log(Level.INFO, "Started Camunda Implementation RecieveTaskListener");
 
         LOGGER.info("ActivityId : " + variables.getCurrentActivityId());
@@ -38,9 +38,7 @@ public class RecieveTaskListener implements ServiceTask
                 LOGGER.info("FhirStoreDeletionTask businessKey : " + variables.getBusinessKey());
                 LOGGER.info("FhirStoreDeletionTask activityId : " + variables.getCurrentActivityId());
             }
-            default -> {
-                LOGGER.info("Unknown CurrentActivityId: " + variables.getCurrentActivityId());
-            }
+            default -> LOGGER.info("Unknown CurrentActivityId: " + variables.getCurrentActivityId());
         }
     }
 

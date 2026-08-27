@@ -33,7 +33,6 @@ public class CreateArchiveStore implements ServiceTask {
     private static final String HEALTHENDPOINT = "/health";
     private String dupIdentifier;
     private double size;
-    private String nginxUrl;
     private TransitVariablesConfig transitVariablesConfig;
 
     public CreateArchiveStore(TransitVariablesConfig transitVariablesConfig) {
@@ -42,13 +41,13 @@ public class CreateArchiveStore implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, InterruptedException, GitAPIException, IOException {
         LOGGER.info("Create Archive Store start");
 
         dupIdentifier = (variables.getString(ConstantsTransit.DUPIDENTIFIER)).toLowerCase(Locale.ROOT);
         Bundle collection = (Bundle) variables.getFhirResource(ConstantsTransit.COLLECTION_BUNDLE);
 
-        nginxUrl = SERVICEPREFIX + dupIdentifier;
+        String nginxUrl = SERVICEPREFIX + dupIdentifier;
 
         String file = FhirContext.forR4().newJsonParser().encodeResourceToString(collection);
         byte[] bytes = file.getBytes(StandardCharsets.UTF_8);
@@ -63,7 +62,7 @@ public class CreateArchiveStore implements ServiceTask {
                 TimeUnit.SECONDS);
 
         //Build Client
-        try (Client client = builder.build();) {
+        try (Client client = builder.build()) {
 
             TimeUnit.MINUTES.sleep(RETRYDELAYMINUTES);
             WebTarget available = client.target(nginxUrl + HEALTHENDPOINT);

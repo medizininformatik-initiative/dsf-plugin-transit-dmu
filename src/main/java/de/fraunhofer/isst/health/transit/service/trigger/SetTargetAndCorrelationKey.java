@@ -25,7 +25,7 @@ public class SetTargetAndCorrelationKey implements ServiceTask
 	}
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         String documentReferenceValue =	variables.getString(BPMN_EXECUTION_DATA);
         List<Resource> documentReferences = variables.getFhirResourceList(BPMN_EXECUTION_DATA_LIST);
 

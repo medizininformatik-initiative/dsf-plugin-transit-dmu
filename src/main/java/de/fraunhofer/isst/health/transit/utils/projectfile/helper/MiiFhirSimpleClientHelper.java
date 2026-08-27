@@ -18,7 +18,6 @@ public class MiiFhirSimpleClientHelper {
     private final IGenericClient fhirClient;
     private final DmsProjectFileFhirClientConfig config;
     private final CapturingInterceptor capturingInterceptor;
-    private final int notFound = 404;
     private HTTPResponseObject lastResponse;
 
     /**
@@ -94,6 +93,7 @@ public class MiiFhirSimpleClientHelper {
                     break;
             }
             if (bundle.getEntry().isEmpty()) {
+                int notFound = 404;
                 lastResponse = new HTTPResponseObject(notFound, null, resourceType);
             } else {
                 lastResponse =

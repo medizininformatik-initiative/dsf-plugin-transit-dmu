@@ -18,7 +18,7 @@ public class HandleErrorMergeReceiveSendReceipt implements ServiceTask
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         Task startTask = variables.getStartTask();
         Task latestTask = variables.getLatestTask();
         String projectIdentifier = variables

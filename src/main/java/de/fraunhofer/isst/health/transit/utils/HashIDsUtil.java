@@ -9,9 +9,6 @@ import java.util.List;
 
 public class HashIDsUtil {
 
-    private static final int SALT_LENGTH = 64;
-    private static final String SALT_DOMAIN_NAME = "SALT_DOMAIN";
-
     public static void hashIDs(Bundle bundleObject, String salt) {
 
         //Iterate over all entries of inner Bundle
@@ -56,14 +53,14 @@ public class HashIDsUtil {
             if (value.hasValues() && value.getTypeCode().startsWith("Reference")) {
 
                 //Check that Reference is not via Identifier
-                if (value.getValues().get(0).getChildByName("reference").hasValues()) {
-                    String ref = value.getValues().get(0)
-                            .getChildByName("reference").getValues().get(0).toString();
+                if (value.getValues().getFirst().getChildByName("reference").hasValues()) {
+                    String ref = value.getValues().getFirst()
+                            .getChildByName("reference").getValues().getFirst().toString();
 
                     String[] refSplit = ref.split("/");
                     ref = refSplit[0] + "/" + DigestUtils.sha3_256Hex(refSplit[1] + salt);
 
-                    value.getValues().get(0)
+                    value.getValues().getFirst()
                             .setProperty("reference", new StringType(ref));
                 }
             } else if (value.hasValues()) {

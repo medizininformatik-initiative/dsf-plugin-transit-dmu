@@ -62,7 +62,7 @@ public class SendInitializeNewProjectDataSharing implements MessageSendTask, Ini
 
 
 	@Override
-	public void afterPropertiesSet() throws Exception
+	public void afterPropertiesSet()
 	{
         //super.afterPropertiesSet();
 		//Objects.requireNonNull(fhirClientFactory, "fhirClientFactory");

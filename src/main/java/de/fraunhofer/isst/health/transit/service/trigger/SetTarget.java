@@ -15,7 +15,7 @@ public class SetTarget implements ServiceTask
 	}
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         variables.setTarget(
                 variables.createTarget(api.getOrganizationProvider().getLocalOrganizationIdentifierValue().get(),
                         api.getEndpointProvider().getLocalEndpointIdentifierValue().get(),

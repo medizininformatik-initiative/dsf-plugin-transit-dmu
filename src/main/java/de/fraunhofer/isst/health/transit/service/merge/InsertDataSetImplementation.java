@@ -1,8 +1,6 @@
 package de.fraunhofer.isst.health.transit.service.merge;
 
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +28,6 @@ public class InsertDataSetImplementation implements ServiceTask {
 
     private static final Logger LOGGER = Logger.getLogger(InsertDataSetImplementation.class.getName());
     private static final int PREFIXLENGTH = 5;
-    private IParser parser;
     private HashMap<String, String> dizPrefixMapping;
     private HashMap<String, String> uUIDToTransportIDs;
     private HashMap<String, String> transportIDToDIZID;
@@ -45,7 +42,7 @@ public class InsertDataSetImplementation implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, JsonProcessingException {
         ObjectMapper mapper = api.getObjectMapper();
         String fhirStoreUrl = variables.getString(ConstantsTransit.FHIRSTOREURL);
 
@@ -55,8 +52,6 @@ public class InsertDataSetImplementation implements ServiceTask {
 
         DocumentReference documentReference = (DocumentReference) (DomainResource) variables.getFhirResource(DOCUMENT_REFERENCE);
         List<Resource> resources = variables.getFhirResourceList(BUNDLE);
-
-        parser = FhirContext.forR4().newJsonParser();
 
         //Map the transport IDs to the DIZ that send them
         if (variables.getVariable(ConstantsTransit.DIZMAP) != null) {
@@ -86,9 +81,7 @@ public class InsertDataSetImplementation implements ServiceTask {
 
         //Search for the prefix of the diz or generate a new one if none exist
         String prefix;
-        if (dizPrefixMapping.containsKey(dizId)) {
-            prefix = dizPrefixMapping.get(dizId);
-        } else {
+        if (!dizPrefixMapping.containsKey(dizId)) {
             prefix = RandomStringUtils.randomAlphanumeric(PREFIXLENGTH);
             while (dizPrefixMapping.containsValue(prefix)) {
                 prefix = RandomStringUtils.randomAlphanumeric(PREFIXLENGTH);

@@ -12,6 +12,7 @@ import de.fraunhofer.isst.health.transit.utils.projectfile.mii.MIIEndpoint;
 import de.fraunhofer.isst.health.transit.utils.projectfile.status.DataUsageProjectStatus;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
+import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -34,8 +35,6 @@ public class ArchiveData implements ServiceTask {
     private static final int TIMEOUT_S = 30;
     private static final String UPLOADENDPOINT = "/upl/";
     private static final String HEALTHENDPOINT = "/health";
-    private String dupIdentifier;
-    private String nginxUrl;
     private DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig;
 
     public ArchiveData(DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig) {
@@ -44,12 +43,13 @@ public class ArchiveData implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, InterruptedException {
         LOGGER.info("ArchiveStore start");
 
-        dupIdentifier = (variables.getString(ConstantsTransit.DUPIDENTIFIER)).toLowerCase(Locale.ROOT);
+        String dupIdentifier = (variables.getString(ConstantsTransit.DUPIDENTIFIER)).toLowerCase(Locale.ROOT);
+        String nginxUrl = variables.getString(ConstantsTransit.ARCHIVEURL);
+
         Bundle collection = (Bundle) variables.getFhirResource(ConstantsTransit.COLLECTION_BUNDLE);
-        nginxUrl = variables.getString(ConstantsTransit.ARCHIVEURL);
 
         String file = FhirContext.forR4().newJsonParser().encodeResourceToString(collection);
 
@@ -71,7 +71,7 @@ public class ArchiveData implements ServiceTask {
                     TimeUnit.SECONDS);
 
             //Build Client
-            try (Client client = builder.build();) {
+            try (Client client = builder.build()) {
 
                 TimeUnit.MINUTES.sleep(RETRYDELAYMINUTES);
                 WebTarget available = client.target(nginxUrl + HEALTHENDPOINT);
@@ -134,7 +134,7 @@ public class ArchiveData implements ServiceTask {
         status.setLastUpdated(new DateTimeType(Calendar.getInstance().getTime()));
         status.setId(dupIdentifier);
         status.setCode(EDataUsageProjectCode.ARCHIVED);
-        status.setCorrelatedTask(dataUsageProject.getTasks().get(0));
+        status.setCorrelatedTask(dataUsageProject.getTasks().getFirst());
 
         dataUsageProject.addStatus(status);
 

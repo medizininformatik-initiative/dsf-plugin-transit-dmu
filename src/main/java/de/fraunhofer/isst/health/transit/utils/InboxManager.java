@@ -5,10 +5,9 @@ import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import org.hl7.fhir.r4.model.*;
 
 import java.util.Optional;
-import java.util.logging.Logger;
 
 public class InboxManager {
-    private static final Logger LOGGER = Logger.getLogger(InboxManager.class.getName());
+    //private static final Logger LOGGER = Logger.getLogger(InboxManager.class.getName());
 
     public void deleteFromInbox(ProcessPluginApi api, DocumentReference documentReference, String inboxUrl){
 

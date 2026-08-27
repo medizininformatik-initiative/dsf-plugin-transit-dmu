@@ -43,7 +43,7 @@ public class DownloadDataSetImplementation implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         LOGGER.log(Level.INFO, "Start DownloadDataSetImplementation");
 
         DsfClient inboxClient = api.getDsfClientProvider().getByEndpointUrl(dmsFhirClientConfig.getFhirStoreBaseUrl());

@@ -29,7 +29,7 @@ public class CheckNewData implements ServiceTask
 	}
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         String from = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);
 
         DsfClient newClient = api.getDsfClientProvider().getByEndpointUrl(dmsFhirClientConfig.getFhirStoreBaseUrl());
@@ -64,7 +64,7 @@ public class CheckNewData implements ServiceTask
                 .map(entry -> entry.getResource().getIdElement().getIdPart())
                 .toList();
 
-        if (taskIds != null && !taskIds.isEmpty()){
+        if (!taskIds.isEmpty()){
             logger.info("Number of new data found: " + taskIds.size());
             variables.setFhirResourceList(BPMN_EXECUTION_DATA_LIST, documentReferences);
             variables.setFhirResourceList(BPMN_EXECUTION_TASK_LIST, tasks);
