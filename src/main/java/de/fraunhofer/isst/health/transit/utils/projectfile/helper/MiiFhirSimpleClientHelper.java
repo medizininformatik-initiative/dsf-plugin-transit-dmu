@@ -1,8 +1,6 @@
 package de.fraunhofer.isst.health.transit.utils.projectfile.helper;
 
-import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import ca.uhn.fhir.rest.client.api.IHttpRequest;
 import ca.uhn.fhir.rest.client.api.IHttpResponse;
 import ca.uhn.fhir.rest.client.interceptor.CapturingInterceptor;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
@@ -29,15 +27,7 @@ public class MiiFhirSimpleClientHelper {
      */
     public MiiFhirSimpleClientHelper(ProcessPluginApi api, DmsProjectFileFhirClientConfig config) {
         this.config = config;
-//        FhirContext context = FhirContext.forR4();
-//        if (config.getTimeOut() != 0) {
-//            context.getRestfulClientFactory().setSocketTimeout(config.getTimeOut());
-//        }
-
         this.fhirClient = api.getFhirClientProvider().getById(ConstantsTransit.PROJECT_FILE).get();
-
-        //this.fhirClient = config.fhirClientFactory().getFhirClient().getGenericFhirClient();
-        //this.fhirClient = context.newRestfulGenericClient(config.getServerUrl());
 
         capturingInterceptor = new CapturingInterceptor();
         fhirClient.registerInterceptor(capturingInterceptor);
@@ -46,8 +36,6 @@ public class MiiFhirSimpleClientHelper {
 
     /**
      * This method can be used to search for a resource of a specific type with a specific identifier value on the server
-     * The identifier system is automatically added using the system value for the resource type stored
-     * in the {@link de.fraunhofer.isst.health.transit.utils.projectfile.helper.MiiFhirClientHelperConfig MiiFhirClientHelperConfig}
      * @param identifier the value part of the identifier of the serched resource
      * @param resourceType the type of the searched resource
      * @return an Optional either containing the resource or nothing, if no resource of the type with the identifier was found
@@ -143,28 +131,14 @@ public class MiiFhirSimpleClientHelper {
         }
     }
 
-    public MethodOutcome miiFhirPost(Resource resource) {
-        if (resource.hasId()) {
-           return fhirClient.update().resource(resource).execute();
-        } else {
-            return fhirClient.create().resource(resource).execute();
-        }
-
-
-    }
-
     public DmsProjectFileFhirClientConfig getConfig() {
         return config;
     }
-    public IGenericClient getFhirClient() {
-        return fhirClient;
-    }
-    public IHttpRequest getLastRequestHTTP() {
-        return capturingInterceptor.getLastRequest();
-    }
+
     public IHttpResponse getLastResponseHTTP() {
         return capturingInterceptor.getLastResponse();
     }
+
     public HTTPResponseObject getLastResponse() {
         return lastResponse;
     }

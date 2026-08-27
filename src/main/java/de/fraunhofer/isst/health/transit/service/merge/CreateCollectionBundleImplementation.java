@@ -13,8 +13,6 @@ import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.Bundle;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,7 +40,6 @@ public class CreateCollectionBundleImplementation implements ServiceTask {
         LOGGER.log(Level.INFO, "Start CreateCollectionBundleImplementation for Fhir Store: "+fhirStoreUrl);
 
         String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
-        String parameter = URLEncoder.encode(fhirStoreUrl, StandardCharsets.UTF_8);
 
         Optional<String> questionnareResponseId = api.getTaskHelper().getFirstInputParameterStringValue(variables.getLatestTask(),
                 CODESYSTEM_DMU_TOOLS, CODESYSTEM_DMU_VALUE_QUESTIONNARE_RESPONSE);
@@ -107,7 +104,6 @@ public class CreateCollectionBundleImplementation implements ServiceTask {
 				}
 			}
 
-			//if (collectionBundle.getEntry().size() > 0) {
 			String fileName = "DataFile_" + dupIdentifier + ".json";
 
 			variables.setFhirResource(ConstantsTransit.COLLECTION_BUNDLE, collectionBundle);
@@ -116,16 +112,12 @@ public class CreateCollectionBundleImplementation implements ServiceTask {
 			returnUrl = StoreUtils.createDownloadFile(transitVariablesConfig, fileName, content);
 			LOGGER.info("Created Data-File: " + fileName);
 
-			//} else {
-			//    LOGGER.warning("Created CollectionBundle is empty!");
-			//}
-
 			MiiFhirComplexClientHelper miiFhirClientHelper = new MiiFhirComplexClientHelper(api, dupIdentifier,  dmsProjectFileFhirClientConfig);
 			ArrayList<MIIPerson> scientists = miiFhirClientHelper.getDataUsageProject().getPersonGroup().getResearcher();
 
 			//Create DB-Entries for Access-Control of File
             if (transitVariablesConfig.getSetAccessList()) {
-                StoreUtils.setAccessList(transitVariablesConfig, dupIdentifier, fileName, scientists);
+                StoreUtils.setAccessList(transitVariablesConfig, fileName, scientists);
             }
 
 			return returnUrl;

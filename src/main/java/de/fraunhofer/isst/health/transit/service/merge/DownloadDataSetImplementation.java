@@ -3,23 +3,19 @@ package de.fraunhofer.isst.health.transit.service.merge;
 import de.fraunhofer.isst.health.transit.ConstantsTransit;
 import de.fraunhofer.isst.health.transit.spring.config.DmsFhirClientConfig;
 import de.fraunhofer.isst.health.transit.spring.config.DmsProjectFileFhirClientConfig;
-import de.fraunhofer.isst.health.transit.spring.config.TransitVariablesConfig;
 import de.fraunhofer.isst.health.transit.utils.DataResource;
 import de.fraunhofer.isst.health.transit.utils.ResultFormatter;
 import de.fraunhofer.isst.health.transit.utils.projectfile.enums.EDataUsageProjectCode;
 import de.fraunhofer.isst.health.transit.utils.projectfile.helper.MiiFhirComplexClientHelper;
 import de.fraunhofer.isst.health.transit.utils.projectfile.mii.MIITask;
 import de.fraunhofer.isst.health.transit.utils.projectfile.status.DataUsageProjectStatus;
-import de.medizininformatik_initiative.processes.common.util.ConstantsBase;
 import dev.dsf.bpe.v2.ProcessPluginApi;
 import dev.dsf.bpe.v2.activity.ServiceTask;
 import dev.dsf.bpe.v2.client.dsf.DsfClient;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
-import jakarta.ws.rs.core.MediaType;
 import org.hl7.fhir.r4.model.*;
 
-import java.io.InputStream;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
@@ -35,17 +31,14 @@ public class DownloadDataSetImplementation implements ServiceTask {
     private static final Logger LOGGER = Logger.getLogger(DownloadDataSetImplementation.class.getName());
 
     private DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig;
-    private TransitVariablesConfig transitVariablesConfig;
     private DmsFhirClientConfig dmsFhirClientConfig;
 
     public DownloadDataSetImplementation(
             DmsProjectFileFhirClientConfig dmsProjectFileFhirClientConfig,
-            TransitVariablesConfig transitVariablesConfig,
             DmsFhirClientConfig dmsFhirClientConfig) {
 
         super();
         this.dmsProjectFileFhirClientConfig = dmsProjectFileFhirClientConfig;
-        this.transitVariablesConfig = transitVariablesConfig;
         this.dmsFhirClientConfig = dmsFhirClientConfig;
     }
 
@@ -63,18 +56,12 @@ public class DownloadDataSetImplementation implements ServiceTask {
         String documentID = variables.getString(ConstantsTransit.DOCUMENTID
                 + ConstantsTransit.DIZSEPERATOR
                 + dizId);
-//        String binaryID = variables.getString(ConstantsTransit.BINARYID
-//                + ConstantsTransit.DIZSEPERATOR
-//                + dizId);
-//        String bundleID = variables.getString(ConstantsTransit.BUNDLEID
-//                + ConstantsTransit.DIZSEPERATOR
-//                + dizId);
 
         LOGGER.log(Level.INFO, "dizID: " + dizId);
 
         LOGGER.log(Level.INFO, "documentID: " + documentID);
         DocumentReference documentReference = inboxClient.read(DocumentReference.class, documentID);
-//		String documentReference = downloader.getResourceFromInbox("DocumentReference", documentID);
+
         if (documentReference != null && !documentReference.isEmpty()) {
             LOGGER.log(Level.INFO, "DocumentReference loaded");
             variables.setFhirResource(DOCUMENT_REFERENCE, documentReference);
@@ -83,26 +70,6 @@ public class DownloadDataSetImplementation implements ServiceTask {
         Stream<DataResource> attachments = readAttachments(api, documentReference);
         List<Resource> resources = getResources(attachments);
         variables.setFhirResourceList(BUNDLE, resources);
-
-
-//        if (!Objects.equals(bundleID, "NA")) {
-//            LOGGER.log(Level.INFO, "bundleID: " + bundleID);
-//            Resource bundle = inboxClient.read(Bundle.class, bundleID);
-//            if (bundle != null && !bundle.isEmpty()) {
-//                LOGGER.log(Level.INFO, "Bundle loaded");
-//                variables.setFhirResource(BUNDLE, bundle);
-//            }
-//            variables.setFhirResource(BUNDLE, bundle);
-//        } else {
-//            LOGGER.log(Level.INFO, "binaryID: " + binaryID);
-//            Resource binary = inboxClient.read(Binary.class, binaryID);
-//            //String binary = downloader.getResourceFromInbox("Binary", binaryID);
-//            if (binary != null && !binary.isEmpty()) {
-//                LOGGER.log(Level.INFO, "Binary loaded");
-//                variables.setFhirResource(BINARY, binary);
-//            }
-//        }
-
 
         uploadBundleTaskToProjectFile(api, variables);
     }

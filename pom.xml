@@ -21,7 +21,7 @@
 	</properties>
 
 	<name>mii-transit-dmst</name>
-	<description>Process to recieve and merge data-sets of an approved data usage project from DIC to a DMS, coordinated by a HRP</description>
+	<description>Process to receive and merge data-sets of an approved data usage project from DIC to a DMS, coordinated by a HRP</description>
 	<url>https://github.com/medizininformatik-initiative/dsf-plugin-transit-dmu</url>
 
 	<scm>

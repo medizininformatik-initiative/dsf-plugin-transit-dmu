@@ -31,7 +31,6 @@ public class CheckNewData implements ServiceTask
     @Override
     public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
         String from = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);
-        //IGenericClient client = fhirClientFactory.getFhirClient().getGenericFhirClient();
 
         DsfClient newClient = api.getDsfClientProvider().getByEndpointUrl(dmsFhirClientConfig.getFhirStoreBaseUrl());
 
@@ -40,17 +39,6 @@ public class CheckNewData implements ServiceTask
         searchParameters.put("_lastUpdated", List.of("ge" + from));
 
         Bundle result = newClient.search(DocumentReference.class, searchParameters);
-
-        /*
-        Bundle result = client
-                .search()
-                .forResource(DocumentReference.class)
-                .where(new StringClientParam("status").matches().value("current"))
-                .where(new StringClientParam("_lastUpdated").matches().value("ge" + from))
-                .returnBundle(Bundle.class)
-                .usingStyle(SearchStyleEnum.POST)
-                .execute();
-         */
 
         DsfClient dsfClient = api.getDsfClientProvider().getLocal();
 
@@ -69,6 +57,7 @@ public class CheckNewData implements ServiceTask
                 .filter(entry -> entry.getResource() instanceof DocumentReference)
                 .map(entry -> (DocumentReference) entry.getResource())
                 .toList();
+
         // Extract the Task from the Bundle's entry
         List<String> taskIds = result.getEntry().stream()
                 .filter(entry -> entry.getResource() instanceof DocumentReference)

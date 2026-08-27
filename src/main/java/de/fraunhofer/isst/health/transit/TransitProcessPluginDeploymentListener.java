@@ -1,7 +1,6 @@
 package de.fraunhofer.isst.health.transit;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.InitializingBean;
