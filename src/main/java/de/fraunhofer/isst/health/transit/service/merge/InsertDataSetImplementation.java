@@ -91,7 +91,13 @@ public class InsertDataSetImplementation implements ServiceTask {
 
         DsfClient client = api.getDsfClientProvider().getByEndpointUrl(fhirStoreUrl);
         for (Resource resource:resources){
-            client.create(resource);
+            if (resource instanceof Binary){
+                client.create(resource);
+            } else if (resource instanceof Bundle) {
+                    client.postBundle((Bundle) resource);
+            } else {
+                LOGGER.log(Level.WARNING, "Unknown resource type: "+ resource.getResourceType());
+            }
         }
 
         InboxManager inboxManager = new InboxManager();

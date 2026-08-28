@@ -44,6 +44,7 @@ public class PseudonymizationImplementation implements ServiceTask {
         String dupIdentifier = variables.getString(ConstantsTransit.DUPIDENTIFIER);
         boolean hashIDs = variables.getBoolean(ConstantsTransit.HASH_IDS);
         boolean removeIdentifier = variables.getBoolean(ConstantsTransit.REMOVE_IDENTIFIER);
+
         List<Resource> pseud = new ArrayList<>();
         for(Resource resource: resources){
             if (resource instanceof ListResource list)
