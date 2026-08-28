@@ -157,7 +157,7 @@ public class DownloadDataSetImplementation implements ServiceTask {
     {
         IdType attachmentId = new IdType(attachment.getUrl());
 
-        DsfClient client = api.getDsfClientProvider().getByEndpointUrl(attachmentId.getBaseUrl());
+        DsfClient client = api.getDsfClientProvider().getByEndpointUrl(dmsFhirClientConfig.getFhirStoreBaseUrl());
 
         String mimetype = getAttachmentMimeType(attachment);
         if (!isMimetypeFhir(mimetype))
