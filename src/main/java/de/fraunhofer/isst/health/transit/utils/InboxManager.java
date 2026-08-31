@@ -11,26 +11,26 @@ public class InboxManager {
 
     public void deleteFromInbox(ProcessPluginApi api, DocumentReference documentReference, String inboxUrl){
 
-        deleteAttachments(api, documentReference);
+        deleteAttachments(api, documentReference, inboxUrl);
         DsfClient client = api.getDsfClientProvider().getByEndpointUrl(inboxUrl);
         client.delete(DocumentReference.class, documentReference.getIdPart());
 
     }
 
-    private void deleteAttachments(ProcessPluginApi api, DocumentReference documentReference)
+    private void deleteAttachments(ProcessPluginApi api, DocumentReference documentReference, String inboxUrl)
     {
         documentReference.getContent().stream()
                 .filter(DocumentReference.DocumentReferenceContentComponent::hasAttachment)
                 .map(DocumentReference.DocumentReferenceContentComponent::getAttachment)
                 .filter(Attachment::hasUrl)
-                .forEach(attachment -> deleteAttachment(api, attachment));
+                .forEach(attachment -> deleteAttachment(api, attachment, inboxUrl));
     }
 
-    private void deleteAttachment(ProcessPluginApi api, Attachment attachment)
+    private void deleteAttachment(ProcessPluginApi api, Attachment attachment, String inboxUrl)
     {
         IdType attachmentId = new IdType(attachment.getUrl());
 
-        DsfClient client = api.getDsfClientProvider().getByEndpointUrl(attachmentId.getBaseUrl());
+        DsfClient client = api.getDsfClientProvider().getByEndpointUrl(inboxUrl);
 
         String mimetype = getAttachmentMimeType(attachment);
         if (!isMimetypeFhir(mimetype))
