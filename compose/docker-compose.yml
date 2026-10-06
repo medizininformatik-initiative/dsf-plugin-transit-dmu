@@ -1,0 +1,396 @@
+# Simplified single-role (DMS) development deployment for the Transit DMU processes.
+# Based on examples/compose/dev-setup, trimmed to the DMS role + Transit services.
+
+services:
+
+  db:
+    image: postgres:17
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U liquibase_user -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      TZ: Europe/Berlin
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_liquibase.password
+      POSTGRES_USER: liquibase_user
+      POSTGRES_DB: postgres
+    networks:
+      - db
+      - dms-fhir-backend
+      - dms-bpe-backend
+    secrets:
+      - db_liquibase.password
+    volumes:
+      - type: volume
+        source: db-data
+        target: /var/lib/postgresql
+      - type: bind
+        source: ./db/init-db.sh
+        target: /docker-entrypoint-initdb.d/init-db.sh
+        read_only: true
+
+  dms-fhir:
+    image: ghcr.io/datasharingframework/fhir:2.1.0
+    restart: "no"
+    ports:
+      - 127.0.0.1:5002:5002
+      - 9595:8080
+    secrets:
+      - db_liquibase.password
+      - db_dms_fhir_user.password
+      - db_dms_fhir_user_permanent_delete.password
+      - ca_chain.crt
+      - app_dms_client_certificate.pem
+      - app_dms_client_certificate_private_key.pem
+      - app_dms_client_certificate_private_key.pem.password
+    volumes:
+      - type: bind
+        source: ./dms/fhir/conf/bundle.xml
+        target: /opt/fhir/conf/bundle.xml
+      - type: bind
+        source: ./dms/fhir/log
+        target: /opt/fhir/log
+    environment:
+      TZ: Europe/Berlin
+      EXTRA_JVM_ARGS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5002
+      JETTY_CLIENT_TRUSTSTORE_PEM: /run/secrets/ca_chain.crt
+      DEV_DSF_FHIR_DB_LIQUIBASE_PASSWORD_FILE: /run/secrets/db_liquibase.password
+      DEV_DSF_FHIR_DB_USER_PASSWORD_FILE: /run/secrets/db_dms_fhir_user.password
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_PASSWORD_FILE: /run/secrets/db_dms_fhir_user_permanent_delete.password
+      DEV_DSF_FHIR_CLIENT_TRUST_SERVER_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE: /run/secrets/app_dms_client_certificate.pem
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY: /run/secrets/app_dms_client_certificate_private_key.pem
+      DEV_DSF_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY_PASSWORD_FILE: /run/secrets/app_dms_client_certificate_private_key.pem.password
+      DEV_DSF_FHIR_DB_URL: jdbc:postgresql://db/dms_fhir
+      DEV_DSF_FHIR_DB_USER_GROUP: dms_fhir_users
+      DEV_DSF_FHIR_DB_USER_USERNAME: dms_fhir_server_user
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_GROUP: dms_fhir_permanent_delete_users
+      DEV_DSF_FHIR_DB_USER_PERMANENT_DELETE_USERNAME: dms_fhir_server_permanent_delete_user
+      DEV_DSF_FHIR_SERVER_BASE_URL: https://dms/fhir
+      DEV_DSF_FHIR_SERVER_ORGANIZATION_IDENTIFIER_VALUE: dms.dsf.test
+      DEV_DSF_FHIR_SERVER_ORGANIZATION_THUMBPRINT: ${DMS_BUNDLE_USER_THUMBPRINT}
+      DEV_DSF_SERVER_AUTH_TRUST_CLIENT_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_FHIR_SERVER_ROLECONFIG: |
+        - webbrowser_test_user:
+            thumbprint: ${WEBBROWSER_TEST_USER_THUMBPRINT}
+            token-role: admin
+            dsf-role:
+              - CREATE
+              - READ
+              - UPDATE
+              - DELETE
+              - SEARCH
+              - HISTORY
+              - PERMANENT_DELETE
+            practitioner-role:
+              - http://dsf.dev/fhir/CodeSystem/practitioner-role|DSF_ADMIN
+
+    networks:
+      dms-fhir-frontend:
+        ipv4_address: 192.20.0.99
+      dms-fhir-backend:
+      internet:
+    depends_on:
+      - db
+      - proxy
+
+  dms-bpe:
+    image: ghcr.io/datasharingframework/bpe:2.1.0
+    restart: "no"
+    ports:
+      - 127.0.0.1:5005:5005
+    secrets:
+      - db_liquibase.password
+      - db_dms_bpe_user.password
+      - db_dms_bpe_user_engine.password
+      - ca_chain.crt
+      - app_dms_client_certificate.pem
+      - app_dms_client_certificate_private_key.pem
+      - app_dms_client_certificate_private_key.pem.password
+      - dms_public_key.pem
+      - dms_private_key.pem
+    volumes:
+      - type: bind
+        source: ./dms/bpe/plugin
+        target: /opt/bpe/plugin
+        read_only: true
+      - type: bind
+        source: ./dms/bpe/process
+        target: /opt/bpe/process
+        read_only: true
+      - type: bind
+        source: ./dms/bpe/log
+        target: /opt/bpe/log
+      - type: bind
+        source: ./dms/bpe/last_event
+        target: /opt/bpe/last_event
+      - type: bind
+        source: ./data
+        target: /data
+    environment:
+      TZ: Europe/Berlin
+      EXTRA_JVM_ARGS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      DEV_DSF_BPE_DB_LIQUIBASE_PASSWORD_FILE: /run/secrets/db_liquibase.password
+      DEV_DSF_BPE_DB_USER_PASSWORD_FILE: /run/secrets/db_dms_bpe_user.password
+      DEV_DSF_BPE_DB_USER_ENGINE_PASSWORD_FILE: /run/secrets/db_dms_bpe_user_engine.password
+      DEV_DSF_BPE_FHIR_CLIENT_TRUST_SERVER_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE: /run/secrets/app_dms_client_certificate.pem
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY: /run/secrets/app_dms_client_certificate_private_key.pem
+      DEV_DSF_BPE_FHIR_CLIENT_CERTIFICATE_PRIVATE_KEY_PASSWORD_FILE: /run/secrets/app_dms_client_certificate_private_key.pem.password
+      DEV_DSF_BPE_DB_URL: jdbc:postgresql://db/dms_bpe
+      DEV_DSF_BPE_DB_USER_GROUP: dms_bpe_users
+      DEV_DSF_BPE_DB_USER_USERNAME: dms_bpe_server_user
+      DEV_DSF_BPE_DB_USER_ENGINE_GROUP: dms_engine_users
+      DEV_DSF_BPE_DB_USER_ENGINE_USERNAME: dms_engine_server_user
+      DEV_DSF_BPE_FHIR_SERVER_BASE_URL: https://dms/fhir
+      DEV_DSF_BPE_SERVER_BASE_URL: https://dms/bpe
+      DEV_DSF_BPE_SERVER_UI_THEME: dev
+      DEV_DSF_SERVER_AUTH_TRUST_CLIENT_CERTIFICATE_CAS: /run/secrets/ca_chain.crt
+      DEV_DSF_BPE_PROCESS_EXCLUDED: medizininformatik-initiativede_coordinateDataSharing|1.1,medizininformatik-initiativede_executeDataSharing|1.1
+      DE_MEDIZININFORMATIK_INITIATIVE_DATA_SHARING_DMS_FHIR_SERVER_BASE_URL: 'http://dmsfhir:8080/fhir'
+      DE_MEDIZININFORMATIK_INITIATIVE_DMS_PUBLIC_KEY: /run/secrets/dms_public_key.pem
+      DE_MEDIZININFORMATIK_INITIATIVE_DMS_PRIVATE_KEY: /run/secrets/dms_private_key.pem
+      EU_DATAMANAGEMENTUNIT_TRANSIT_PROJECTFILE_FHIR_SERVER_BASE_URL: "http://projectfile:8080/fhir"
+      EU_DATAMANAGEMENTUNIT_TRANSIT_GPAS_URL: "http://gpas:8080/gpas"
+      EU_DATAMANAGEMENTUNIT_TRANSIT_GPAS_KEYCLOAK_ENABLE: "true"
+      EU_DATAMANAGEMENTUNIT_TRANSIT_GPAS_KEYCLOAK_CLIENT_ID: "gpas-domain-admin"
+      EU_DATAMANAGEMENTUNIT_TRANSIT_GPAS_KEYCLOAK_CLIENT_SECRET: "domain-admin-client-secret"
+      EU_DATAMANAGEMENTUNIT_TRANSIT_GPAS_KEYCLOAK_SERVER_URL: "http://keycloak:8081"
+      EU_DATAMANAGEMENTUNIT_TRANSIT_GPAS_KEYCLOAK_REALM: "ttp"
+      EU_DATAMANAGEMENTUNIT_TRANSIT_FILESTORAGE_PATH: "/data"
+      EU_DATAMANAGEMENTUNIT_TRANSIT_FILESTORAGE_URL: "http://filestorage/dl/"
+      DEV_DSF_BPE_FHIR_CLIENT_CONNECTIONS_CONFIG: |
+        projectfile:
+          base-url: http://projectfile:8080/fhir
+      DEV_DSF_BPE_SERVER_ROLECONFIG: |
+        - webbrowser_test_user:
+            thumbprint: ${WEBBROWSER_TEST_USER_THUMBPRINT}
+            token-role: admin
+            dsf-role:
+              - ADMIN
+
+    networks:
+      dms-bpe-frontend:
+        ipv4_address: 192.20.0.147
+      dms-bpe-backend:
+      internet:
+    depends_on:
+      - db
+      - dms-fhir
+      - gpas
+      - keycloak
+
+  proxy:
+    image: nginx:1.23
+    restart: "no"
+    ports:
+      - 127.0.0.1:443:443
+    secrets:
+      - localhost.chain.crt
+      - localhost.key.plain
+      - issuing_ca.crt
+      - ca_chain.crt
+    volumes:
+      - type: bind
+        source: ./proxy/conf.d
+        target: /etc/nginx/conf.d
+        read_only: true
+      - type: bind
+        source: ./proxy/nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+    networks:
+      dms-fhir-frontend:
+        ipv4_address: 192.20.0.98
+      dms-bpe-frontend:
+        ipv4_address: 192.20.0.146
+      internet:
+        aliases:
+          - dms
+    environment:
+      TZ: Europe/Berlin
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3
+    container_name: keycloak
+    restart: "no"
+    ports:
+      - "8081:8081"
+    environment:
+      TZ: Europe/Berlin
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - type: bind
+        source: ./keycloak
+        target: /opt/keycloak/data/import
+    networks:
+      dms-bpe-backend:
+    command: >-
+      start
+      --db dev-file
+      --hostname keycloak
+      --http-enabled=true
+      --http-port=8081
+      --import-realm
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      TZ: Europe/Berlin
+    volumes:
+      - ./gpas/sqls:/docker-entrypoint-initdb.d
+    networks:
+      dms-bpe-backend:
+
+  gpas:
+    image: mosaicgreifswald/gpas:2026.1.0
+    container_name: gpas
+    ports:
+      - "8080:8080"
+      - "9990:9990"
+    env_file:
+      - ./gpas/envs/ttp_common.env
+      - ./gpas/envs/ttp_gpas.env
+    environment:
+      WF_ADMIN_PASS: admin
+      WF_WAIT_FOR_PORTS: mysql:3306:120
+      WF_HEALTHCHECK_URLS: |
+        http://localhost:8080
+        http://localhost:8080/gpas-rest/health/state
+    depends_on:
+      - mysql
+      - keycloak
+    volumes:
+      - ./gpas/logs:/entrypoint-wildfly-logs
+      - ./gpas/addins:/entrypoint-wildfly-addins
+    networks:
+      dms-bpe-backend:
+
+  projectfile:
+    container_name: "projectfile"
+    image: ghcr.io/medizininformatik-initiative/dmu-fhir-store:latest
+    ports:
+      - "9181:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker-it
+      JDK_JAVA_OPTIONS: "-XX:MaxRAMPercentage=70.0 -XX:MinRAMPercentage=70.0 -XX:InitialRAMPercentage=70.0"
+      hapi.fhir.subscription.resthook_enabled: "true"
+      hapi.fhir.allowed_bundle_types: "COLLECTION,DOCUMENT,MESSAGE,TRANSACTION"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db/projectfile
+      SPRING_DATASOURCE_USERNAME: liquibase_user
+      SPRING_DATASOURCE_PASSWORD: NKb2D7ZCxgmhrddh4KNgCrBr49mSsqWUnQAQHgGPkYZ2k7W9VQCFevuGRFYeZg9p
+    depends_on:
+      - db
+    networks:
+      dms-bpe-backend:
+
+  filestorage:
+    container_name: "filestorage"
+    image: ghcr.io/medizininformatik-initiative/dmu-file-storage:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./data:/usr/share/nginx/html
+    networks:
+      dms-bpe-backend:
+
+  dmsstore:
+    container_name: "dmsstore"
+    image: ghcr.io/medizininformatik-initiative/dmu-fhir-store:latest
+    ports:
+      - "9282:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker-it
+      JDK_JAVA_OPTIONS: "-XX:MaxRAMPercentage=70.0 -XX:MinRAMPercentage=70.0 -XX:InitialRAMPercentage=70.0"
+      hapi.fhir.subscription.resthook_enabled: "true"
+      hapi.fhir.allowed_bundle_types: "COLLECTION,DOCUMENT,MESSAGE,TRANSACTION"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db/dmsstore
+      SPRING_DATASOURCE_USERNAME: liquibase_user
+      SPRING_DATASOURCE_PASSWORD: NKb2D7ZCxgmhrddh4KNgCrBr49mSsqWUnQAQHgGPkYZ2k7W9VQCFevuGRFYeZg9p
+    depends_on:
+      - db
+    networks:
+      dms-bpe-backend:
+
+  dmsfhir:
+    container_name: "dmsfhir"
+    image: hapiproject/hapi:latest
+    ports:
+      - "9080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db/hapi
+      SPRING_DATASOURCE_USERNAME: liquibase_user
+      SPRING_DATASOURCE_PASSWORD: NKb2D7ZCxgmhrddh4KNgCrBr49mSsqWUnQAQHgGPkYZ2k7W9VQCFevuGRFYeZg9p
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect
+      HAPI_FHIR_FHIR_VERSION: R4
+      HAPI_FHIR_TESTER_CONFIG_ENABLED: "true"
+      HAPI_FHIR_ALLOWED_BUNDLE_TYPES: COLLECTION,DOCUMENT,MESSAGE,TRANSACTION
+      HAPI_FHIR_BULK_EXPORT_ENABLED: 'true'
+      TZ: Europe/Berlin
+    depends_on:
+      - db
+    networks:
+      dms-bpe-backend:
+
+secrets:
+  localhost.chain.crt:
+    file: ./secrets/localhost.chain.crt
+  localhost.key.plain:
+    file: ./secrets/localhost.key.plain
+  issuing_ca.crt:
+    file: ./secrets/issuing_ca.crt
+
+  db_liquibase.password:
+    file: ./secrets/db_liquibase.password
+
+  db_dms_fhir_user.password:
+    file: ./secrets/db_dms_fhir_user.password
+  db_dms_fhir_user_permanent_delete.password:
+    file: ./secrets/db_dms_fhir_user_permanent_delete.password
+  db_dms_bpe_user.password:
+    file: ./secrets/db_dms_bpe_user.password
+  db_dms_bpe_user_engine.password:
+    file: ./secrets/db_dms_bpe_user_engine.password
+
+  ca_chain.crt:
+    file: ./secrets/ca_chain.crt
+
+  app_dms_client_certificate.pem:
+    file: ./secrets/app_dms_client_certificate.crt
+  app_dms_client_certificate_private_key.pem:
+    file: ./secrets/app_dms_client_certificate.key
+  app_dms_client_certificate_private_key.pem.password:
+    file: ./secrets/app_client_certificate_private_key.pem.password
+
+  dms_public_key.pem:
+    file: ./secrets/dms_public_key.pem
+  dms_private_key.pem:
+    file: ./secrets/dms_private_key.pem
+
+networks:
+  internet:
+  dms-fhir-frontend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.20.0.96/28
+  dms-fhir-backend:
+  dms-bpe-frontend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.20.0.144/28
+  dms-bpe-backend:
+  db:
+
+volumes:
+  db-data:
+    name: dsf-transit-tutorial-db

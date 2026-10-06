@@ -6,7 +6,7 @@
 
 	<groupId>de.fraunhofer.isst.health.transit</groupId>
 	<artifactId>mii-transit-dmst</artifactId>
-	<version>1.0.0.4</version>
+	<version>1.0.0.5</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -300,9 +300,103 @@
 				<version>${dsf.version}</version>
 				<executions>
 					<execution>
+						<id>generate-documentation</id>
 						<goals>
 							<goal>generate-config-doc</goal>
 						</goals>
+					</execution>
+					<execution>
+						<id>default-cli</id>
+						<goals>
+							<goal>generate-dev-setup-cert-files</goal>
+						</goals>
+						<configuration>
+							<certDir>cert</certDir>
+							<privateKeyPassword>password</privateKeyPassword>
+							<certs>
+								<cert>
+									<cn>localhost</cn>
+									<type>SERVER</type>
+									<sans>
+										<san>localhost</san>
+										<san>host.docker.internal</san>
+										<san>dms</san>
+										<san>dic</san>
+										<san>hrp</san>
+									</sans>
+									<targets>
+										<target>compose/secrets/localhost.chain.crt</target>
+										<target>compose/secrets/localhost.key.plain</target>
+									</targets>
+								</cert>
+								<cert>
+									<cn>Webbrowser Test User</cn>
+									<type>CLIENT</type>
+									<targets>
+										<target>compose/browser-certs/Webbrowser_Test_User.p12</target>
+									</targets>
+								</cert>
+								<cert>
+									<cn>dms-client</cn>
+									<type>CLIENT</type>
+									<targets>
+										<target>compose/secrets/app_dms_client_certificate.crt</target>
+										<target>compose/secrets/app_dms_client_certificate.key</target>
+										<target>compose/browser-certs/dms/dms-client.crt</target>
+										<target>compose/browser-certs/dms/dms-client.key</target>
+										<target>compose/browser-certs/dms/dms-client.p12</target>
+									</targets>
+								</cert>
+								<cert>
+									<cn>dic-client</cn>
+									<type>CLIENT</type>
+									<targets>
+										<target>compose/secrets/app_dic_client_certificate.crt</target>
+										<target>compose/secrets/app_dic_client_certificate.key</target>
+										<target>compose/browser-certs/dic/dic-client.crt</target>
+										<target>compose/browser-certs/dic/dic-client.key</target>
+										<target>compose/browser-certs/dic/dic-client.p12</target>
+									</targets>
+								</cert>
+								<cert>
+									<cn>hrp-client</cn>
+									<type>CLIENT</type>
+									<targets>
+										<target>compose/secrets/app_hrp_client_certificate.crt</target>
+										<target>compose/secrets/app_hrp_client_certificate.key</target>
+										<target>compose/browser-certs/hrp/hrp-client.crt</target>
+										<target>compose/browser-certs/hrp/hrp-client.key</target>
+										<target>compose/browser-certs/hrp/hrp-client.p12</target>
+									</targets>
+								</cert>
+							</certs>
+							<rootCa>
+								<targets>
+									<target>compose/browser-certs/root-ca.crt</target>
+								</targets>
+							</rootCa>
+							<issuingCa>
+								<targets>
+									<target>compose/secrets/keycloak_trust_store.jks</target>
+									<target>compose/secrets/issuing_ca.crt</target>
+								</targets>
+							</issuingCa>
+							<caChain>
+								<targets>
+									<target>compose/secrets/ca_chain.crt</target>
+								</targets>
+							</caChain>
+							<templates>
+								<template>
+									<source>src/main/resources/templates/dev-setup.env</source>
+									<target>compose/.env</target>
+								</template>
+								<template>
+									<source>src/main/resources/templates/bundle.xml</source>
+									<target>compose/dms/fhir/conf/bundle.xml</target>
+								</template>
+							</templates>
+						</configuration>
 					</execution>
 				</executions>
 				<configuration>
