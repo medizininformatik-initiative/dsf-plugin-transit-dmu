@@ -25,7 +25,7 @@ public class SetTargetAndCorrelationKey implements ServiceTask
 	}
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         String documentReferenceValue =	variables.getString(BPMN_EXECUTION_DATA);
         List<Resource> documentReferences = variables.getFhirResourceList(BPMN_EXECUTION_DATA_LIST);
 
@@ -72,8 +72,9 @@ public class SetTargetAndCorrelationKey implements ServiceTask
                     .map(input -> input.getValue().primitiveValue()).findFirst().orElse(null);
 
             logger.info(
-                    "Processing data-set with id '{}' from organization '{}' for data-sharing project '{}' in Task with id '{}'",
+                    "Processing data-set with id '{}' with correlationKey '{}' from organization '{}' for data-sharing project '{}' in Task with id '{}'",
                     documentReference.getId(),
+                    correlationKey,
                     documentReference.getAuthorFirstRep().getIdentifier().getValue(),
                     projectID,
                     matchingTask.get().getId());

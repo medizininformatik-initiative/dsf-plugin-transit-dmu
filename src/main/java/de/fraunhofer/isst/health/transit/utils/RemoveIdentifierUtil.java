@@ -23,11 +23,10 @@ public class RemoveIdentifierUtil
 
     private static void searchForIdentifier(List<Property> values) {
 
-        for (int i = 0; i < values.size(); i++) {
-            if (values.get(i).hasValues() && values.get(i).getTypeCode().startsWith("Identifier")) {
+        for (Property value : values) {
+            if (value.hasValues() && value.getTypeCode().startsWith("Identifier")) {
 
-                //values.get(i).getValues().get(0).setProperty("value", new StringType(null));
-                ((Identifier) values.get(i).getValues().get(0))
+                ((Identifier) value.getValues().getFirst())
                         .setUse(null)
                         .setType(null)
                         .setSystem(null)

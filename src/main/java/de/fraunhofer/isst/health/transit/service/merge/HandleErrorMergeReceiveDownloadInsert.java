@@ -8,19 +8,17 @@ import dev.dsf.bpe.v2.client.dsf.DelayStrategy;
 import dev.dsf.bpe.v2.error.ErrorBoundaryEvent;
 import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.Task;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class HandleErrorMergeReceiveDownloadInsert implements ServiceTask
 {
-	private static final Logger logger = LoggerFactory.getLogger(HandleErrorMergeReceiveDownloadInsert.class);
+	//private static final Logger logger = LoggerFactory.getLogger(HandleErrorMergeReceiveDownloadInsert.class);
 
 	public HandleErrorMergeReceiveDownloadInsert() {
 	    super();
     }
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         Task startTask = variables.getStartTask();
         Task latestTask = variables.getLatestTask();
         String projectIdentifier = variables

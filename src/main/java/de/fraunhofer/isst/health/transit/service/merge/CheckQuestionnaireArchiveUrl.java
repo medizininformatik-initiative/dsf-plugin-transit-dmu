@@ -18,7 +18,7 @@ public class CheckQuestionnaireArchiveUrl implements ServiceTask {
     private static final Logger logger = LoggerFactory.getLogger(CheckQuestionnaireArchiveUrl.class);
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         Task task = variables.getStartTask();
         String projectIdentifier = variables.getString(ConstantsTransit.BPMN_EXECUTION_VARIABLE_PROJECT_IDENTIFIER);
         QuestionnaireResponse questionnaireResponse = variables.getLatestReceivedQuestionnaireResponse();

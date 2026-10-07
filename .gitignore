@@ -11,3 +11,6 @@
 
 **/dependency-reduced-pom.xml
 **/.codebase-memory
+
+# Working directory for the dsf-maven-plugin generate-dev-setup-cert-files goal
+**/cert/

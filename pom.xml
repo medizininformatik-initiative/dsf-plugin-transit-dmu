@@ -6,8 +6,8 @@
 
 	<groupId>de.fraunhofer.isst.health.transit</groupId>
 	<artifactId>mii-transit-dmst</artifactId>
+	<version>1.0.0.5</version>
 
-	<version>1.0.0.3</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!--
@@ -21,7 +21,7 @@
 	</properties>
 
 	<name>mii-transit-dmst</name>
-	<description>Process to recieve and merge data-sets of an approved data usage project from DIC to a DMS, coordinated by a HRP</description>
+	<description>Process to receive and merge data-sets of an approved data usage project from DIC to a DMS, coordinated by a HRP</description>
 	<url>https://github.com/medizininformatik-initiative/dsf-plugin-transit-dmu</url>
 
 	<scm>
@@ -83,7 +83,7 @@
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
             <artifactId>org.hl7.fhir.validation</artifactId>
-            <version>6.3.0</version>
+            <version>6.10.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>ca.uhn.hapi.fhir</groupId>
@@ -96,12 +96,12 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
-            <version>4.0.3</version>
+            <version>4.2.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http</artifactId>
-            <version>4.0.3</version>
+            <version>4.2.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
@@ -111,7 +111,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>6.1.13</version>
+            <version>7.0.8</version>
         </dependency>
 		<dependency>
 			<groupId>org.eclipse.angus</groupId>
@@ -122,7 +122,7 @@
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
-			<version>7.0.0.202409031743-r</version>
+			<version>7.7.1.202607240634-r</version>
 		</dependency>
 		<!-- Yaml dependencies -->
 		<dependency>
@@ -135,12 +135,12 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.9</version>
+            <version>3.20.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
-            <version>1.7</version>
+            <version>1.15.0</version>
         </dependency>
 		<!-- Source: https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt -->
 		<dependency>
@@ -300,9 +300,104 @@
 				<version>${dsf.version}</version>
 				<executions>
 					<execution>
+						<id>generate-documentation</id>
 						<goals>
 							<goal>generate-config-doc</goal>
 						</goals>
+					</execution>
+					<execution>
+						<id>default-cli</id>
+						<phase>none</phase>
+						<goals>
+							<goal>generate-dev-setup-cert-files</goal>
+						</goals>
+						<configuration>
+							<certDir>cert</certDir>
+							<privateKeyPassword>password</privateKeyPassword>
+							<certs>
+								<cert>
+									<cn>localhost</cn>
+									<type>SERVER</type>
+									<sans>
+										<san>localhost</san>
+										<san>host.docker.internal</san>
+										<san>dms</san>
+										<san>dic</san>
+										<san>hrp</san>
+									</sans>
+									<targets>
+										<target>compose/secrets/localhost.chain.crt</target>
+										<target>compose/secrets/localhost.key.plain</target>
+									</targets>
+								</cert>
+								<cert>
+									<cn>Webbrowser Test User</cn>
+									<type>CLIENT</type>
+									<targets>
+										<target>compose/browser-certs/Webbrowser_Test_User.p12</target>
+									</targets>
+								</cert>
+								<cert>
+									<cn>dms-client</cn>
+									<type>CLIENT</type>
+									<targets>
+										<target>compose/secrets/app_dms_client_certificate.crt</target>
+										<target>compose/secrets/app_dms_client_certificate.key</target>
+										<target>compose/browser-certs/dms/dms-client.crt</target>
+										<target>compose/browser-certs/dms/dms-client.key</target>
+										<target>compose/browser-certs/dms/dms-client.p12</target>
+									</targets>
+								</cert>
+								<cert>
+									<cn>dic-client</cn>
+									<type>CLIENT</type>
+									<targets>
+										<target>compose/secrets/app_dic_client_certificate.crt</target>
+										<target>compose/secrets/app_dic_client_certificate.key</target>
+										<target>compose/browser-certs/dic/dic-client.crt</target>
+										<target>compose/browser-certs/dic/dic-client.key</target>
+										<target>compose/browser-certs/dic/dic-client.p12</target>
+									</targets>
+								</cert>
+								<cert>
+									<cn>hrp-client</cn>
+									<type>CLIENT</type>
+									<targets>
+										<target>compose/secrets/app_hrp_client_certificate.crt</target>
+										<target>compose/secrets/app_hrp_client_certificate.key</target>
+										<target>compose/browser-certs/hrp/hrp-client.crt</target>
+										<target>compose/browser-certs/hrp/hrp-client.key</target>
+										<target>compose/browser-certs/hrp/hrp-client.p12</target>
+									</targets>
+								</cert>
+							</certs>
+							<rootCa>
+								<targets>
+									<target>compose/browser-certs/root-ca.crt</target>
+								</targets>
+							</rootCa>
+							<issuingCa>
+								<targets>
+									<target>compose/secrets/keycloak_trust_store.jks</target>
+									<target>compose/secrets/issuing_ca.crt</target>
+								</targets>
+							</issuingCa>
+							<caChain>
+								<targets>
+									<target>compose/secrets/ca_chain.crt</target>
+								</targets>
+							</caChain>
+							<templates>
+								<template>
+									<source>src/main/resources/templates/dev-setup.env</source>
+									<target>compose/.env</target>
+								</template>
+								<template>
+									<source>src/main/resources/templates/bundle.xml</source>
+									<target>compose/dms/fhir/conf/bundle.xml</target>
+								</template>
+							</templates>
+						</configuration>
 					</execution>
 				</executions>
 				<configuration>

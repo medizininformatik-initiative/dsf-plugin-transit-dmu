@@ -10,18 +10,15 @@ import dev.dsf.bpe.v2.activity.values.SendTaskValues;
 import dev.dsf.bpe.v2.variables.Target;
 import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Stream;
 
 import static de.fraunhofer.isst.health.transit.ConstantsTransit.BPMN_EXECUTION_PROJECT;
-import static de.fraunhofer.isst.health.transit.ConstantsTransit.BPMN_EXECUTION_PROJECTS;
 
 public class SendNewProject implements MessageSendTask
 {
-	private static final Logger logger = LoggerFactory.getLogger(SendNewProject.class);
+	//private static final Logger logger = LoggerFactory.getLogger(SendNewProject.class);
 
 	public SendNewProject()
 	{

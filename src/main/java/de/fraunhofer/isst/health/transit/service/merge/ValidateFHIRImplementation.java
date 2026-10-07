@@ -25,7 +25,7 @@ public class ValidateFHIRImplementation implements ServiceTask {
     }
 
     @Override
-    public void execute(ProcessPluginApi processPluginApi, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi processPluginApi, Variables variables) throws ErrorBoundaryEvent {
         LOGGER.log(Level.INFO, "Start ValidateFHIRImplementation");
         String dizId = variables.getString(ConstantsTransit.CURRENTDIZID);
         String key = variables.getBusinessKey() + ConstantsTransit.DIZSEPERATOR + dizId;
@@ -44,7 +44,7 @@ public class ValidateFHIRImplementation implements ServiceTask {
             validationEngine.connectToTSServer(
                     "http://tx.fhir.org",
                     "",
-                    FhirPublication.R4);
+                    FhirPublication.R4, false);
 
             StringBuilder message = new StringBuilder("Started validation against following IGs: FhirR4");
 

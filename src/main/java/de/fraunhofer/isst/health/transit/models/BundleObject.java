@@ -18,11 +18,7 @@ public class BundleObject {
         this.contentType = contentType;
         this.bundle = bundle;
     }
-    public BundleObject(String key, String contentType, String bundle, String documentReference) {
-        this(key, contentType, bundle);
-        this.documentReference = documentReference;
-        hasDocumentReference = true;
-    }
+
     public String getKey() {
         return key;
     }
@@ -34,6 +30,7 @@ public class BundleObject {
     public String getContentType() {
         return contentType;
     }
+
     public String getDocumentReference() {
         return documentReference;
     }

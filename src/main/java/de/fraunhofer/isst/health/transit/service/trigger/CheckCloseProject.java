@@ -25,7 +25,7 @@ public class CheckCloseProject implements ServiceTask
 	}
 
     @Override
-    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent, Exception {
+    public void execute(ProcessPluginApi api, Variables variables) throws ErrorBoundaryEvent {
         String from = variables.getString(BPMN_EXECUTION_VARIABLE_FROM);
 
         DsfClient dsfClient = api.getDsfClientProvider().getLocal();

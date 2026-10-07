@@ -13,8 +13,6 @@ import dev.dsf.bpe.v2.variables.Target;
 import dev.dsf.bpe.v2.variables.Targets;
 import dev.dsf.bpe.v2.variables.Variables;
 import org.hl7.fhir.r4.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.util.List;
@@ -23,7 +21,7 @@ import java.util.stream.Stream;
 
 public class SendInitializeNewProjectDataSharing implements MessageSendTask, InitializingBean
 {
-	private static final Logger logger = LoggerFactory.getLogger(SendInitializeNewProjectDataSharing.class);
+	//private static final Logger logger = LoggerFactory.getLogger(SendInitializeNewProjectDataSharing.class);
 
 	public SendInitializeNewProjectDataSharing() {
         super();
@@ -64,58 +62,11 @@ public class SendInitializeNewProjectDataSharing implements MessageSendTask, Ini
 
 
 	@Override
-	public void afterPropertiesSet() throws Exception
+	public void afterPropertiesSet()
 	{
         //super.afterPropertiesSet();
 		//Objects.requireNonNull(fhirClientFactory, "fhirClientFactory");
 	}
-
-    /*
-	@Override
-	protected void sendTask(DelegateExecution execution, Variables variables, Target target,
-			String instantiatesCanonical, String messageName, String businessKey, String profile,
-			Stream<Task.ParameterComponent> additionalInputParameters)
-	{
-		Objects.requireNonNull(instantiatesCanonical, "instantiatesCanonical");
-		if (instantiatesCanonical.isEmpty())
-			throw new IllegalArgumentException("instantiatesCanonical empty");
-		Objects.requireNonNull(messageName, "messageName");
-		if (messageName.isEmpty())
-			throw new IllegalArgumentException("messageName empty");
-		Objects.requireNonNull(businessKey, "businessKey");
-		if (businessKey.isEmpty())
-			throw new IllegalArgumentException("profile empty");
-		Objects.requireNonNull(profile, "profile");
-		if (profile.isEmpty())
-			throw new IllegalArgumentException("profile empty");
-
-		Task dsfTask = variables.getStartTask();
-
-		try
-		{
-			Task task = createTask(profile, instantiatesCanonical, messageName, businessKey);
-			additionalInputParameters.forEach(task::addInput);
-			MethodOutcome outcome = fhirClientFactory.getFhirClient().create(task);
-
-			if (!outcome.getCreated())
-			{
-				String outcomeString = api.getFhirContext().newJsonParser()
-						.encodeResourceToString(outcome.getOperationOutcome());
-				throw new RuntimeException("Could not initialize new data-sharing project - " + outcomeString);
-			}
-			else
-			{
-				logger.info("Initialized new data-sharing project instance having id '{}' for Task with id '{}'",
-						outcome.getId(), dsfTask.getId());
-			}
-		}
-		catch (Exception exception)
-		{
-			logger.warn("Could not initialize new DMS project instance for Task with id '{}' - {}", dsfTask.getId(),
-					exception.getMessage());
-		}
-	}
-     */
 
 	private Task.ParameterComponent getProjectIdentifierInput(String projectIdentifier)
 	{
@@ -170,30 +121,4 @@ public class SendInitializeNewProjectDataSharing implements MessageSendTask, Ini
 
 		return dicIdentifierInput;
 	}
-
-    /*
-	private Task createTask(String profile, String instantiatesCanonical, String messageName, String businessKey)
-	{
-		Task task = new Task();
-		task.setMeta(new Meta().addProfile(profile));
-		task.setStatus(Task.TaskStatus.REQUESTED);
-		task.setIntent(Task.TaskIntent.ORDER);
-		task.setAuthoredOn(new Date());
-
-		task.setRequester(this.getRequester());
-		task.getRestriction().addRecipient(this.getRequester());
-
-		task.setInstantiatesCanonical(instantiatesCanonical);
-
-		Task.ParameterComponent messageNameInput = new Task.ParameterComponent(
-				new CodeableConcept(CodeSystems.BpmnMessage.messageName()), new StringType(messageName));
-		task.getInput().add(messageNameInput);
-
-		Task.ParameterComponent businessKeyInput = new Task.ParameterComponent(
-				new CodeableConcept(CodeSystems.BpmnMessage.businessKey()), new StringType(businessKey));
-		task.getInput().add(businessKeyInput);
-
-		return task;
-	}
-     */
 }

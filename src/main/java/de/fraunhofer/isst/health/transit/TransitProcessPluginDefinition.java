@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class TransitProcessPluginDefinition implements ProcessPluginDefinition
 {
-	public static final String VERSION = "1.0.0.3";
+	public static final String VERSION = "1.0.0.5";
 	public static final LocalDate RELEASE_DATE = LocalDate.of(2026, 5, 19);
 
 	@Override
@@ -71,9 +71,9 @@ public class TransitProcessPluginDefinition implements ProcessPluginDefinition
 		var qStDel = "fhir/Questionnaire/questionnaire-store-deletion-confirmation.xml";
 
 
-		return Map.of(ConstantsTransit.PROCESS_NAME_FULL_TRANSIT, //
+		return Map.of(ConstantsTransit.PROCESS_NAME_FULL_TRANSIT,
 				List.of(aMer, vDaSh, eDaSeStEr, sTinpds, sTids,sTdto, cDmuTools, vDmuTools, qStDel, qArchive),
-				ConstantsTransit.PROCESS_NAME_FULL_TRANSIT_TRIGGER, //
+				ConstantsTransit.PROCESS_NAME_FULL_TRANSIT_TRIGGER,
 				List.of(aTrig, sStart, sStop));
 	}
 }

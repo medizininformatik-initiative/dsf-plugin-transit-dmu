@@ -288,6 +288,7 @@ public class DataUsageProject {
         this.statusList = new ArrayList<>();
         this.processStatus = EDataUsageProjectCode.INITIALIZED;
         this.hasChanged = false;
+
         //Map Attributes of the ResearchStudy
         id = researchStudy.getIdElement().getIdPart();
         for (Identifier identifier: researchStudy.getIdentifier()) {
@@ -298,6 +299,7 @@ public class DataUsageProject {
                 projectIdentifier = researchStudy.getIdentifierFirstRep().getValue();
             }
         }
+
         title = researchStudy.getTitle();
         status = researchStudy.getStatus();
         startDate = researchStudy.getPeriod().getStartElement().getValueAsString();
@@ -311,6 +313,7 @@ public class DataUsageProject {
             extractionInterval = new Duration();
             extractionInterval.setSystem("http://unitsofmeasure.org");
         }
+
         //Map StatusExtension
 
         //SetUp Status
