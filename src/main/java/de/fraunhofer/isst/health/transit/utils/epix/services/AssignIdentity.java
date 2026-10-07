@@ -1,0 +1,97 @@
+package de.fraunhofer.isst.health.transit.utils.epix.services;
+
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlType;
+
+
+/**
+ * <p>Java-Klasse für assignIdentity complex type.</p>
+ * 
+ * <p>Das folgende Schemafragment gibt den erwarteten Content an, der in dieser Klasse enthalten ist.</p>
+ * 
+ * <pre>{@code
+ * <complexType name="assignIdentity">
+ *   <complexContent>
+ *     <restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *       <sequence>
+ *         <element name="possibleMatchId" type="{http://www.w3.org/2001/XMLSchema}long"/>
+ *         <element name="winningIdentityId" type="{http://www.w3.org/2001/XMLSchema}long"/>
+ *         <element name="comment" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *       </sequence>
+ *     </restriction>
+ *   </complexContent>
+ * </complexType>
+ * }</pre>
+ * 
+ * 
+ */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "assignIdentity", propOrder = {
+    "possibleMatchId",
+    "winningIdentityId",
+    "comment"
+})
+public class AssignIdentity {
+
+    protected long possibleMatchId;
+    protected long winningIdentityId;
+    protected String comment;
+
+    /**
+     * Ruft den Wert der possibleMatchId-Eigenschaft ab.
+     * 
+     */
+    public long getPossibleMatchId() {
+        return possibleMatchId;
+    }
+
+    /**
+     * Legt den Wert der possibleMatchId-Eigenschaft fest.
+     * 
+     */
+    public void setPossibleMatchId(long value) {
+        this.possibleMatchId = value;
+    }
+
+    /**
+     * Ruft den Wert der winningIdentityId-Eigenschaft ab.
+     * 
+     */
+    public long getWinningIdentityId() {
+        return winningIdentityId;
+    }
+
+    /**
+     * Legt den Wert der winningIdentityId-Eigenschaft fest.
+     * 
+     */
+    public void setWinningIdentityId(long value) {
+        this.winningIdentityId = value;
+    }
+
+    /**
+     * Ruft den Wert der comment-Eigenschaft ab.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getComment() {
+        return comment;
+    }
+
+    /**
+     * Legt den Wert der comment-Eigenschaft fest.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setComment(String value) {
+        this.comment = value;
+    }
+
+}

@@ -153,7 +153,6 @@ public class CreateProjectFileListener implements ServiceTask {
             LOGGER.log(Level.INFO, "Projectfile uploaded successfully");
         }
 
-
         createDomain(fileData.getDupIdentifier());
     }
 
