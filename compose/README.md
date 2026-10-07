@@ -19,10 +19,6 @@ This populates `secrets/`, `browser-certs/`, `dms/fhir/conf/bundle.xml` and `.en
 this folder. The templates used are the Maven resources under
 `src/main/resources/templates/`.
 
-> **Note:** this goal requires **Maven 3.9+** (Maven 3.6.x fails with a
-> `NoSuchMethodError: MojoFailureException` in this project). Use a Maven wrapper or a
-> Maven 3.9.x installation.
-
 Add an entry to your hosts file:
 
 ```
@@ -70,25 +66,6 @@ environment variables on the `dms-bpe` service and needs no password.
 Human access to the gPAS Web UI uses the users defined in the realm file
 (`gpas-user` / `gpas-admin`; update their passwords before production use).
 
-## Process engine (dmu-process-engine)
-
-The `dmu-process-engine` service is a Camunda-based orchestrator that acts as a DSF
-**client**: it triggers DSF processes by POSTing FHIR `Task`/`ActivityDefinition`/
-`StructureDefinition` resources to `https://dms/fhir` (via the local `proxy`) using the
-DMS client certificate for mutual TLS. It authenticates as the DMS organisation
-(`dms.dsf.test`) and posts its temp-data bundles to the `dmsfhir` HAPI store
-(the temp-data-inbox).
-
-- **App / trigger endpoints**: <http://localhost:8083> (`POST /tf/mii`, `/tf/num`, ...)
-- **Management/metrics**: <http://localhost:7979> (`/actuator/health`, `/prometheus`)
-- **Camunda admin**: `klaus` (see `application.yaml`)
-
-> **Note:** the engine's bundled processes target the MII data-sharing (`mergeDataSharing`)
-> and NUM flows, which the local `dms-bpe` currently **excludes**
-> (`DEV_DSF_BPE_PROCESS_EXCLUDED`). The service starts and can be used as a FHIR-store
-> client / for its own Camunda workflows, but triggering those DSF processes locally will
-> be rejected until the exclusion is removed and the corresponding plugin jars are added.
-
 ## Services
 
 | Service           | Purpose                                          |
@@ -102,5 +79,4 @@ DMS client certificate for mutual TLS. It authenticates as the DMS organisation
 | `projectfile`     | Project file FHIR store                          |
 | `dmsstore`        | DMU FHIR store                                   |
 | `dmsfhir`         | HAPI FHIR store (temp-data-inbox)                |
-| `dmu-process-engine` | Camunda orchestrator (DSF client, see above)  |
 | `filestorage`     | File storage server                             |
