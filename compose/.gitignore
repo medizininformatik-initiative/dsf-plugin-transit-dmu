@@ -10,4 +10,9 @@ secrets/localhost.key.plain
 
 dms/fhir/conf/bundle.xml
 
-browser-certs/
+browser-certs/*.crt
+browser-certs/*.key
+browser-certs/*.p12
+browser-certs/*/*.crt
+browser-certs/*/*.key
+browser-certs/*/*.p12
