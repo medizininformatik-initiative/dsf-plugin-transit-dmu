@@ -12,7 +12,7 @@ deployment by running the `generate-dev-setup-cert-files` goal from the root dir
 this repository:
 
 ```sh
-mvn generate-dev-setup-cert-files
+mvn dsf:generate-dev-setup-cert-files
 ```
 
 This populates `secrets/`, `browser-certs/`, `dms/fhir/conf/bundle.xml` and `.env` in
@@ -40,7 +40,7 @@ The DMS role requires the following plugin JARs. Download them and place them in
 ## FHIR bundle
 
 The `dms-fhir` service mounts the bundle at `dms/fhir/conf/bundle.xml`. It is generated
-by `mvn generate-dev-setup-cert-files` (see [Prerequisites](#prerequisites)) into this
+by `mvn dsf:generate-dev-setup-cert-files` (see [Prerequisites](#prerequisites)) into this
 path, registering the DMS, DIC and HRP organizations/endpoints plus the MII affiliation.
 
 ## Start

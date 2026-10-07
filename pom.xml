@@ -307,6 +307,7 @@
 					</execution>
 					<execution>
 						<id>default-cli</id>
+						<phase>none</phase>
 						<goals>
 							<goal>generate-dev-setup-cert-files</goal>
 						</goals>
